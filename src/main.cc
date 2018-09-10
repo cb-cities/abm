@@ -4,7 +4,7 @@
 
 int main(int argc, char** argv) {
   const bool directed = true;
-  auto graph = std::make_unique<Graph>(directed);
+  auto graph = std::make_unique<abm::Graph>(directed);
   if (argc > 1) {
     // Read MatrixMarket file
     const std::string filename = argv[1];

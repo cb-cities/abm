@@ -13,21 +13,27 @@
 #include <unordered_map>
 #include <vector>
 
+namespace abm {
+namespace graph {
+//! Vertex id type
+using vertex_t = int;
+//! Weight type, that can be added with +
+using weight_t = double;
+}  // namespace graph
+}  // namespace abm
+
+namespace abm {
 //! \brief ShortestPath struct to return source, distance and parents
 struct ShortestPath {
-  //! Vertex id type
-  using vertex_t = int;
-  //! Weight type, that can be added with +
-  using weight_t = double;
-
   //! Get path from source to j using parent array
   //! \param[in] parent Map of vertex to its parent id
   //! \param[in] destination Destination vertex id to get path
   //! \param[in] source Source vertex id to get path (SSSP set as -1)
   //! \retval path Path from source to destination
-  std::vector<vertex_t> get_path(vertex_t source, vertex_t destination) {
+  std::vector<graph::vertex_t> get_path(graph::vertex_t source,
+                                        graph::vertex_t destination) {
     // Create an empty path
-    std::vector<vertex_t> path;
+    std::vector<graph::vertex_t> path;
     // Iterate until source has been reached
     while (destination != source) {
       destination = parent.at(destination);
@@ -39,25 +45,22 @@ struct ShortestPath {
   }
 
   //! Source
-  vertex_t source;
+  graph::vertex_t source;
   //! Destination
   // std::vector<vertex_t> destinations;
   //! Distances
-  std::vector<weight_t> distances;
+  std::vector<graph::weight_t> distances;
   //! Parent array to store shortest path tree
-  std::unordered_map<vertex_t, vertex_t> parent;
+  std::unordered_map<graph::vertex_t, graph::vertex_t> parent;
 };
 
 //! \brief Graph class to store vertices and edge and compute shortest path
 //! \details Graph class has Priority Queue Dijkstra algorithm for SSSP
 class Graph {
  public:
-  //! Vertex id type
-  using vertex_t = int;
-  //! Weight type, that can be added with +
-  using weight_t = double;
   //! Edge {{v1, v2}, weight}
-  using Edge = std::pair<std::pair<vertex_t, vertex_t>, weight_t>;
+  using Edge =
+      std::pair<std::pair<graph::vertex_t, graph::vertex_t>, graph::weight_t>;
 
   //! Construct directed / undirected graph
   //! \param[in] directed Defines if the graph is directed or not
@@ -70,18 +73,20 @@ class Graph {
   //! \param[in] vertex1 ID of vertex1
   //! \param[in] vertex2 ID of vertex2
   //! \param[in] weight Weight of edge connecting vertex 1 and 2
-  void add_edge(vertex_t vertex1, vertex_t vertex2, weight_t weight);
+  void add_edge(graph::vertex_t vertex1, graph::vertex_t vertex2,
+                graph::weight_t weight);
 
   //! Update edge of a graph
   //! \param[in] vertex1 ID of vertex1
   //! \param[in] vertex2 ID of vertex2
   //! \param[in] weight Weight of edge connecting vertex 1 and 2
-  void update_edge(vertex_t vertex1, vertex_t vertex2, weight_t weight);
+  void update_edge(graph::vertex_t vertex1, graph::vertex_t vertex2,
+                   graph::weight_t weight);
 
   //! Remove edge from graph
   //! \param[in] vertex1 ID of vertex1
   //! \param[in] vertex2 ID of vertex2
-  void remove_edge(vertex_t vertex1, vertex_t vertex2);
+  void remove_edge(graph::vertex_t vertex1, graph::vertex_t vertex2);
 
   //! Generate a simple graph
   void generate_simple_graph();
@@ -95,15 +100,15 @@ class Graph {
   //! \param[in] source ID of source vertex1
   //! \param[in] destination ID of destination vertex (default is -1 for SSSP)
   //! \retval sp Shortest path and distances
-  ShortestPath dijkstra_priority_queue(vertex_t source,
-                                       vertex_t destination = -1);
+  ShortestPath dijkstra_priority_queue(graph::vertex_t source,
+                                       graph::vertex_t destination = -1);
 
   //! Compute the shortest path using priority queue
   //! \param[in] source ID of source vertex1
   //! \param[in] destinations IDs of destination vertex
   //! \retval sp Shortest path and distances
   ShortestPath dijkstra_priority_queue(
-      vertex_t source, const std::vector<vertex_t>& destinations);
+      graph::vertex_t source, const std::vector<graph::vertex_t>& destinations);
 
  private:
   //! Assign number of vertices
@@ -115,10 +120,12 @@ class Graph {
   // Number of graph vertices
   unsigned nvertices_{std::numeric_limits<unsigned>::max()};
   // Edges
-  std::map<std::tuple<vertex_t, vertex_t>, std::shared_ptr<Edge>> edges_;
+  std::map<std::tuple<graph::vertex_t, graph::vertex_t>, std::shared_ptr<Edge>>
+      edges_;
   // adjacency list with iteration over each edge
-  std::unordered_map<vertex_t, std::vector<std::shared_ptr<Edge>>>
+  std::unordered_map<graph::vertex_t, std::vector<std::shared_ptr<Edge>>>
       vertex_edges_;
 };
 
+}  // namespace abm
 #endif  // ABM_GRAPH_H_

@@ -1,8 +1,9 @@
 #include "graph.h"
 
 // Add edge
-inline void Graph::add_edge(Graph::vertex_t vertex1, Graph::vertex_t vertex2,
-                            Graph::weight_t weight = 1) {
+inline void abm::Graph::add_edge(abm::graph::vertex_t vertex1,
+                                 abm::graph::vertex_t vertex2,
+                                 abm::graph::weight_t weight = 1) {
 
   if (!this->directed_)
     if (vertex1 > vertex2) std::swap(vertex1, vertex2);
@@ -28,8 +29,9 @@ inline void Graph::add_edge(Graph::vertex_t vertex1, Graph::vertex_t vertex2,
 }
 
 // Update edge
-void Graph::update_edge(Graph::vertex_t vertex1, Graph::vertex_t vertex2,
-                        Graph::weight_t weight) {
+void abm::Graph::update_edge(abm::graph::vertex_t vertex1,
+                             abm::graph::vertex_t vertex2,
+                             abm::graph::weight_t weight) {
   // Get pointer to specified edge connecting vertex 1 and 2
   auto edge = edges_.at(std::make_tuple(vertex1, vertex2));
   // Update edge weight
@@ -37,7 +39,8 @@ void Graph::update_edge(Graph::vertex_t vertex1, Graph::vertex_t vertex2,
 }
 
 // Remove edge
-void Graph::remove_edge(Graph::vertex_t vertex1, Graph::vertex_t vertex2) {
+void abm::Graph::remove_edge(abm::graph::vertex_t vertex1,
+                             abm::graph::vertex_t vertex2) {
   auto edge = edges_[std::make_tuple(vertex1, vertex2)];
   edges_.erase(edges_.find(std::make_tuple(vertex1, vertex2)));
 
@@ -52,7 +55,7 @@ void Graph::remove_edge(Graph::vertex_t vertex1, Graph::vertex_t vertex2) {
 }
 
 // Read MatrixMarket graph file format
-bool Graph::read_graph_matrix_market(const std::string& filename) {
+bool abm::Graph::read_graph_matrix_market(const std::string& filename) {
   bool status = true;
   try {
     std::fstream file;
@@ -96,7 +99,7 @@ bool Graph::read_graph_matrix_market(const std::string& filename) {
   return status;
 }
 
-void Graph::generate_simple_graph() {
+void abm::Graph::generate_simple_graph() {
   this->assign_nvertices(7);
   // set up a simple graph
   this->add_edge(1, 2, 1.5);
@@ -113,26 +116,29 @@ void Graph::generate_simple_graph() {
 }
 
 // Dijktra shortest paths from src to all other vertices
-ShortestPath Graph::dijkstra_priority_queue(vertex_t source,
-                                            vertex_t destination) {
+abm::ShortestPath abm::Graph::dijkstra_priority_queue(
+    abm::graph::vertex_t source, abm::graph::vertex_t destination) {
 
   // Using lambda to compare elements.
-  auto compare = [](std::pair<Graph::weight_t, Graph::vertex_t> left,
-                    std::pair<Graph::weight_t, Graph::vertex_t> right) {
-    return left.first > right.first;
-  };
+  auto compare =
+      [](std::pair<abm::graph::weight_t, abm::graph::vertex_t> left,
+         std::pair<abm::graph::weight_t, abm::graph::vertex_t> right) {
+        return left.first > right.first;
+      };
 
   // Create a priority queue to store weights and vertices
-  std::priority_queue<std::pair<Graph::weight_t, Graph::vertex_t>,
-                      std::vector<std::pair<Graph::weight_t, Graph::vertex_t>>,
-                      decltype(compare)>
+  std::priority_queue<
+      std::pair<abm::graph::weight_t, abm::graph::vertex_t>,
+      std::vector<std::pair<abm::graph::weight_t, abm::graph::vertex_t>>,
+      decltype(compare)>
       priority_queue(compare);
 
   // Create a shortest path object.
   ShortestPath sp;
   // Create a vector for distances and initialize all to max
   sp.distances.clear();
-  sp.distances.resize(nvertices_, std::numeric_limits<weight_t>::max());
+  sp.distances.resize(nvertices_,
+                      std::numeric_limits<abm::graph::weight_t>::max());
 
   // shortest_path_tree[i] will be true if vertex i is included / in
   // shortest path tree or shortest distance from src to i is finalized
@@ -151,7 +157,7 @@ ShortestPath Graph::dijkstra_priority_queue(vertex_t source,
   // distances are not finalized)
   while (!priority_queue.empty()) {
     // {min_weight, vertex} sorted based on weights (distance)
-    vertex_t u = priority_queue.top().second;
+    abm::graph::vertex_t u = priority_queue.top().second;
     priority_queue.pop();
 
     // Set the current vertex as processed
@@ -163,13 +169,13 @@ ShortestPath Graph::dijkstra_priority_queue(vertex_t source,
     // Get all adjacent vertices of a vertex
     for (const auto& edge : vertex_edges_[u]) {
       // Get vertex label and weight of neighbours of u.
-      const vertex_t neighbour = edge->first.second;
-      const weight_t weight = edge->second;
+      const abm::graph::vertex_t neighbour = edge->first.second;
+      const abm::graph::weight_t weight = edge->second;
 
       // Distance from source to neighbour
       // distance_u = distance to current node + weight of edge u to
       // neighbour
-      const weight_t distance_u = sp.distances.at(u) + weight;
+      const abm::graph::weight_t distance_u = sp.distances.at(u) + weight;
       // If there is shorted path to neighbour vertex through u.
       if (sp.distances.at(neighbour) > distance_u) {
         if (!shortest_path_tree.at(neighbour)) sp.parent[neighbour] = u;
@@ -191,30 +197,34 @@ ShortestPath Graph::dijkstra_priority_queue(vertex_t source,
 }
 
 // Dijktra shortest paths from src to all other vertices
-ShortestPath Graph::dijkstra_priority_queue(
-    vertex_t source, const std::vector<vertex_t>& destinations) {
+abm::ShortestPath abm::Graph::dijkstra_priority_queue(
+    abm::graph::vertex_t source,
+    const std::vector<abm::graph::vertex_t>& destinations) {
 
   // Using lambda to compare elements.
-  auto compare = [](std::pair<Graph::weight_t, Graph::vertex_t> left,
-                    std::pair<Graph::weight_t, Graph::vertex_t> right) {
-    return left.first > right.first;
-  };
+  auto compare =
+      [](std::pair<abm::graph::weight_t, abm::graph::vertex_t> left,
+         std::pair<abm::graph::weight_t, abm::graph::vertex_t> right) {
+        return left.first > right.first;
+      };
 
   // Check if all destinations have been reached, set all to false
-  std::unordered_map<Graph::vertex_t, bool> sp_destinations;
+  std::unordered_map<abm::graph::vertex_t, bool> sp_destinations;
   for (const auto& v : destinations) sp_destinations.insert({v, false});
 
   // Create a priority queue to store weights and vertices
-  std::priority_queue<std::pair<Graph::weight_t, Graph::vertex_t>,
-                      std::vector<std::pair<Graph::weight_t, Graph::vertex_t>>,
-                      decltype(compare)>
+  std::priority_queue<
+      std::pair<abm::graph::weight_t, abm::graph::vertex_t>,
+      std::vector<std::pair<abm::graph::weight_t, abm::graph::vertex_t>>,
+      decltype(compare)>
       priority_queue(compare);
 
   // Create a shortest path object.
   ShortestPath sp;
   // Create a vector for distances and initialize all to max
   sp.distances.clear();
-  sp.distances.resize(nvertices_, std::numeric_limits<weight_t>::max());
+  sp.distances.resize(nvertices_,
+                      std::numeric_limits<abm::graph::weight_t>::max());
 
   // shortest_path_tree[i] will be true if vertex i is included / in
   // shortest path tree or shortest distance from src to i is finalized
@@ -233,7 +243,7 @@ ShortestPath Graph::dijkstra_priority_queue(
   // distances are not finalized)
   while (!priority_queue.empty()) {
     // {min_weight, vertex} sorted based on weights (distance)
-    vertex_t u = priority_queue.top().second;
+    abm::graph::vertex_t u = priority_queue.top().second;
     priority_queue.pop();
 
     // Set the current vertex as processed
@@ -243,22 +253,23 @@ ShortestPath Graph::dijkstra_priority_queue(
     auto itr = sp_destinations.find(u);
     if (itr != sp_destinations.end()) itr->second = true;
     // Break if all destinations are reached
-    if (std::all_of(sp_destinations.begin(), sp_destinations.end(),
-                    [&](std::pair<Graph::vertex_t, bool> const& destination) {
-                      return destination.second;
-                    }))
+    if (std::all_of(
+            sp_destinations.begin(), sp_destinations.end(),
+            [&](std::pair<abm::graph::vertex_t, bool> const& destination) {
+              return destination.second;
+            }))
       break;
 
     // Get all adjacent vertices of a vertex
     for (const auto& edge : vertex_edges_[u]) {
       // Get vertex label and weight of neighbours of u.
-      const vertex_t neighbour = edge->first.second;
-      const weight_t weight = edge->second;
+      const abm::graph::vertex_t neighbour = edge->first.second;
+      const abm::graph::weight_t weight = edge->second;
 
       // Distance from source to neighbour
       // distance_u = distance to current node + weight of edge u to
       // neighbour
-      const weight_t distance_u = sp.distances.at(u) + weight;
+      const abm::graph::weight_t distance_u = sp.distances.at(u) + weight;
       // If there is shorted path to neighbour vertex through u.
       if (sp.distances.at(neighbour) > distance_u) {
         if (!shortest_path_tree.at(neighbour)) sp.parent[neighbour] = u;

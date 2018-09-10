@@ -15,13 +15,13 @@ TEST_CASE("Graph class and shortest-path is checked", "[graph][sp][od]") {
     const bool directed = true;
 
     // Create graph object
-    auto graph = std::make_unique<Graph>(directed);
+    auto graph = std::make_unique<abm::Graph>(directed);
     // Create a simple example graph
     graph->generate_simple_graph();
 
     // Run Dijkstra Priority Queue
-    Graph::vertex_t source = 1;
-    Graph::vertex_t destination = 3;
+    abm::graph::vertex_t source = 1;
+    abm::graph::vertex_t destination = 3;
     auto sp = graph->dijkstra_priority_queue(source, destination);
     auto distances = sp.distances;
 
@@ -70,13 +70,13 @@ TEST_CASE("Graph class and shortest-path is checked", "[graph][sp][od]") {
     const bool directed = true;
 
     // Create graph object
-    auto graph = std::make_unique<Graph>(directed);
+    auto graph = std::make_unique<abm::Graph>(directed);
     // Create a simple example graph
     graph->generate_simple_graph();
 
     // Run Dijkstra Priority Queue
-    Graph::vertex_t source = 1;
-    std::vector<Graph::vertex_t> destinations{2, 3};
+    abm::graph::vertex_t source = 1;
+    std::vector<abm::graph::vertex_t> destinations{2, 3};
     auto sp = graph->dijkstra_priority_queue(source, destinations);
     auto distances = sp.distances;
 
@@ -92,13 +92,13 @@ TEST_CASE("Graph class and shortest-path is checked", "[graph][sp][od]") {
   SECTION("Test SSSP in undirected graph") {
     const bool directed = false;
     // Create graph object
-    auto graph = std::make_unique<Graph>(directed);
+    auto graph = std::make_unique<abm::Graph>(directed);
     // Create a simple example graph
     graph->generate_simple_graph();
 
     // Run Dijkstra Priority Queue
-    Graph::vertex_t source = 1;
-    Graph::vertex_t destination = 3;
+    abm::graph::vertex_t source = 1;
+    abm::graph::vertex_t destination = 3;
     auto sp = graph->dijkstra_priority_queue(source, destination);
     // Get distances
     auto distances = sp.distances;
@@ -127,13 +127,13 @@ TEST_CASE("Graph class and shortest-path is checked", "[graph][sp][od]") {
     const bool directed = false;
 
     // Create graph object
-    auto graph = std::make_unique<Graph>(directed);
+    auto graph = std::make_unique<abm::Graph>(directed);
     // Create a simple example graph
     graph->generate_simple_graph();
 
     // Run Dijkstra Priority Queue
-    Graph::vertex_t source = 1;
-    std::vector<Graph::vertex_t> destinations{2, 3};
+    abm::graph::vertex_t source = 1;
+    std::vector<abm::graph::vertex_t> destinations{2, 3};
     auto sp = graph->dijkstra_priority_queue(source, destinations);
     auto distances = sp.distances;
 
@@ -150,15 +150,15 @@ TEST_CASE("Graph class and shortest-path is checked", "[graph][sp][od]") {
     const bool directed = true;
 
     // Create graph object
-    auto graph = std::make_unique<Graph>(directed);
+    auto graph = std::make_unique<abm::Graph>(directed);
     // Read MatrixMarket file
     const std::string filename = "../sf.mtx";
     // Read file
     REQUIRE(graph->read_graph_matrix_market(filename) == true);
 
     // Run Dijkstra Priority Queue
-    Graph::vertex_t source = 1;
-    Graph::vertex_t destination = 3;
+    abm::graph::vertex_t source = 1;
+    abm::graph::vertex_t destination = 3;
     auto sp = graph->dijkstra_priority_queue(source, destination);
     // Get distances
     auto distances = sp.distances;
@@ -170,7 +170,7 @@ TEST_CASE("Graph class and shortest-path is checked", "[graph][sp][od]") {
 
     SECTION("Test non-existant file") {
       // Create graph object
-      auto graph = std::make_unique<Graph>(directed);
+      auto graph = std::make_unique<abm::Graph>(directed);
       // Read MatrixMarket file
       const std::string filename = "nofile.mtx";
       // Read file should fail
