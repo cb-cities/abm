@@ -185,14 +185,19 @@ abm::ShortestPath abm::Graph::dijkstra_priority_queue(
       }
     }
   }
+  /*
   // print the path
   if (destination != -1) {
-    std::cout << "Source: " << source << " destination: " << destination
-              << " distance: " << sp.distances.at(destination) << " path: ";
+    std::cout << "\nSource: " << source << " destination: " << destination
+              << " distance: " << sp.distances.at(destination);
+    /*
     const auto&& path = sp.get_path(source, destination);
+    std::cout << " path: ";
     for (const auto& item : path) std::cout << item << "->";
     std::cout << destination << "\n";
+
   }
+  */
   return sp;
 }
 

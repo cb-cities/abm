@@ -13,14 +13,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace abm {
-namespace graph {
-//! Vertex id type
-using vertex_t = int;
-//! Weight type, that can be added with +
-using weight_t = double;
-}  // namespace graph
-}  // namespace abm
+#include "config.h"
 
 namespace abm {
 //! \brief ShortestPath struct to return source, distance and parents

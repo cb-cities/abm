@@ -45,6 +45,7 @@ include_directories(BEFORE
 # abm executable
 SET(abm_src
   ${abm_SOURCE_DIR}/src/graph.cc
+  ${abm_SOURCE_DIR}/src/router.cc
 )
 
 add_executable(abm ${abm_src} ${abm_SOURCE_DIR}/src/main.cc)
