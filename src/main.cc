@@ -15,6 +15,7 @@ int main(int argc, char** argv) {
     graph->generate_simple_graph();
   }
 
+  /*
   auto router = std::make_unique<abm::Router>(10);
   router->read_od_pairs("../sf-graph-od-50000.csv");
 
@@ -26,8 +27,10 @@ int main(int argc, char** argv) {
     const auto sp = graph->dijkstra_priority_queue(route.first, route.second);
     std::cout << ++i << "\n";
   }
-  /*
+  */
+  const auto sp = graph->dijkstra_priority_queue(1, 3);
   std::cout << "Dijkstra PriorityQueue\n";
+  /*
   unsigned i = 0;
   for (const auto& distance : sp.distances) {
     std::cout << i << "\t" << distance << "\n";

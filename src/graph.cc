@@ -140,10 +140,6 @@ abm::ShortestPath abm::Graph::dijkstra_priority_queue(
   sp.distances.resize(nvertices_,
                       std::numeric_limits<abm::graph::weight_t>::max());
 
-  // shortest_path_tree[i] will be true if vertex i is included / in
-  // shortest path tree or shortest distance from src to i is finalized
-  std::vector<bool> shortest_path_tree(nvertices_, false);
-
   // Parent array to store shortest path tree
   sp.parent.clear();
   sp.parent.insert({source, -1});
@@ -160,9 +156,6 @@ abm::ShortestPath abm::Graph::dijkstra_priority_queue(
     abm::graph::vertex_t u = priority_queue.top().second;
     priority_queue.pop();
 
-    // Set the current vertex as processed
-    shortest_path_tree.at(u) = true;
-
     // Break if destination is reached
     if (u == destination) break;
 
@@ -178,26 +171,22 @@ abm::ShortestPath abm::Graph::dijkstra_priority_queue(
       const abm::graph::weight_t distance_u = sp.distances.at(u) + weight;
       // If there is shorted path to neighbour vertex through u.
       if (sp.distances.at(neighbour) > distance_u) {
-        if (!shortest_path_tree.at(neighbour)) sp.parent[neighbour] = u;
+        sp.parent[neighbour] = u;
         // Update distance of the vertex
         sp.distances.at(neighbour) = distance_u;
         priority_queue.push(std::make_pair(distance_u, neighbour));
       }
     }
   }
-  /*
   // print the path
   if (destination != -1) {
     std::cout << "\nSource: " << source << " destination: " << destination
               << " distance: " << sp.distances.at(destination);
-    /*
     const auto&& path = sp.get_path(source, destination);
     std::cout << " path: ";
     for (const auto& item : path) std::cout << item << "->";
     std::cout << destination << "\n";
-
   }
-  */
   return sp;
 }
 
@@ -231,10 +220,6 @@ abm::ShortestPath abm::Graph::dijkstra_priority_queue(
   sp.distances.resize(nvertices_,
                       std::numeric_limits<abm::graph::weight_t>::max());
 
-  // shortest_path_tree[i] will be true if vertex i is included / in
-  // shortest path tree or shortest distance from src to i is finalized
-  std::vector<bool> shortest_path_tree(nvertices_, false);
-
   // Parent array to store shortest path tree
   sp.parent.clear();
   sp.parent.insert({source, -1});
@@ -250,9 +235,6 @@ abm::ShortestPath abm::Graph::dijkstra_priority_queue(
     // {min_weight, vertex} sorted based on weights (distance)
     abm::graph::vertex_t u = priority_queue.top().second;
     priority_queue.pop();
-
-    // Set the current vertex as processed
-    shortest_path_tree.at(u) = true;
 
     // Set when a current destination is reached
     auto itr = sp_destinations.find(u);
@@ -277,7 +259,7 @@ abm::ShortestPath abm::Graph::dijkstra_priority_queue(
       const abm::graph::weight_t distance_u = sp.distances.at(u) + weight;
       // If there is shorted path to neighbour vertex through u.
       if (sp.distances.at(neighbour) > distance_u) {
-        if (!shortest_path_tree.at(neighbour)) sp.parent[neighbour] = u;
+        sp.parent[neighbour] = u;
         // Update distance of the vertex
         sp.distances.at(neighbour) = distance_u;
         priority_queue.push(std::make_pair(distance_u, neighbour));
