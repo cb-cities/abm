@@ -214,7 +214,7 @@ abm::ShortestPath abm::Graph::dijkstra_priority_queue(
 
   // Parent array to store shortest path tree
   sp.parent.clear();
-  sp.parent.insert({source, -1});
+  sp.parent.resize(nvertices_, -1);
 
   // Insert source itself in priority queue and initialize its distance as
   // 0.
@@ -243,7 +243,7 @@ abm::ShortestPath abm::Graph::dijkstra_priority_queue(
       const abm::graph::weight_t distance_u = sp.distances.at(u) + weight;
       // If there is shorted path to neighbour vertex through u.
       if (sp.distances.at(neighbour) > distance_u) {
-        sp.parent[neighbour] = u;
+        sp.parent.at(neighbour) = u;
         // Update distance of the vertex
         sp.distances.at(neighbour) = distance_u;
         priority_queue.push(std::make_pair(distance_u, neighbour));
@@ -294,7 +294,7 @@ abm::ShortestPath abm::Graph::dijkstra_priority_queue(
 
   // Parent array to store shortest path tree
   sp.parent.clear();
-  sp.parent.insert({source, -1});
+  sp.parent.resize(nvertices_, -1);
 
   // Insert source itself in priority queue and initialize its distance as
   // 0.
@@ -331,7 +331,7 @@ abm::ShortestPath abm::Graph::dijkstra_priority_queue(
       const abm::graph::weight_t distance_u = sp.distances.at(u) + weight;
       // If there is shorted path to neighbour vertex through u.
       if (sp.distances.at(neighbour) > distance_u) {
-        sp.parent[neighbour] = u;
+        sp.parent.at(neighbour) = u;
         // Update distance of the vertex
         sp.distances.at(neighbour) = distance_u;
         priority_queue.push(std::make_pair(distance_u, neighbour));
