@@ -274,16 +274,16 @@ abm::ShortestPath abm::Graph::dijkstra_priority_queue(
         return left.first > right.first;
       };
 
-  // Check if all destinations have been reached, set all to false
-  std::unordered_map<abm::graph::vertex_t, bool> sp_destinations;
-  for (const auto& v : destinations) sp_destinations.insert({v, false});
-
   // Create a priority queue to store weights and vertices
   std::priority_queue<
       std::pair<abm::graph::weight_t, abm::graph::vertex_t>,
       std::vector<std::pair<abm::graph::weight_t, abm::graph::vertex_t>>,
       decltype(compare)>
       priority_queue(compare);
+
+  // Check if all destinations have been reached, set all to false
+  std::unordered_map<abm::graph::vertex_t, bool> sp_destinations;
+  for (const auto& v : destinations) sp_destinations.insert({v, false});
 
   // Create a shortest path object.
   ShortestPath sp;

@@ -40,7 +40,11 @@ int main(int argc, char** argv) {
   std::time_t end_time = std::chrono::system_clock::to_time_t(end);
 
   std::cout << "finished computation at " << std::ctime(&end_time)
-            << "elapsed time: " << elapsed_seconds.count() << "s\n";
+            << "elapsed time: "
+            << std::chrono::duration_cast<std::chrono::milliseconds>(
+                   elapsed_seconds)
+                   .count()
+            << "ms\n";
   std::cout << "Dijkstra PriorityQueue\n";
   for (const auto& vertex : path) std::cout << vertex << "\t";
   /*
