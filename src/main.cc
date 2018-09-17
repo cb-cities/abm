@@ -23,11 +23,14 @@ int main(int argc, char** argv) {
   const auto routes = router->od_pairs();
 
   unsigned i = 0;
+  std::vector<std::pair<abm::graph::vertex_t, abm::graph::vertex_t>> path;
   for (const auto& route : routes) {
     auto start = std::chrono::system_clock::now();
     // const auto distances = graph->dijkstra_priority_queue(1, -1);
     std::cout << "O-D: " << route.first << "\t" << route.second << "\n";
     const auto sp = graph->dijkstra(route.first, route.second);
+    path.insert(std::end(path), std::begin(sp), std::end(sp));
+    std::cout << "Total path size: " << path.size() << "\n";
     auto end = std::chrono::system_clock::now();
     std::cout << "elapsed time: "
               << std::chrono::duration_cast<std::chrono::milliseconds>(end -
@@ -35,7 +38,7 @@ int main(int argc, char** argv) {
                      .count()
               << "ms\n";
     std::cout << ++i << "\n";
-    if (i == 1000) break;
+    if (i == 5) break;
   }
 
   /*

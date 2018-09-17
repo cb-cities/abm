@@ -116,8 +116,9 @@ void abm::Graph::generate_simple_graph() {
 }
 
 // Dijktra shortest paths from src to a vertex
-std::vector<abm::graph::vertex_t> abm::Graph::dijkstra(
-    abm::graph::vertex_t source, abm::graph::vertex_t destination) {
+std::vector<std::pair<abm::graph::vertex_t, abm::graph::vertex_t>>
+    abm::Graph::dijkstra(abm::graph::vertex_t source,
+                         abm::graph::vertex_t destination) {
 
   // Using lambda to compare elements.
   auto compare =
@@ -177,14 +178,32 @@ std::vector<abm::graph::vertex_t> abm::Graph::dijkstra(
   }
 
   std::vector<abm::graph::vertex_t> path;
+  path.emplace_back(destination);
   // Iterate until source has been reached
   while (destination != source && destination != -1) {
     destination = parent.at(destination);
-    if (destination != source) path.emplace_back(destination);
+    if (destination != source && destination != -1)
+      path.emplace_back(destination);
   }
-  // Reverse to arrange from source to destination
-  std::reverse(path.begin(), path.end());
-  return path;
+  path.emplace_back(source);
+  // std::reverse(path.begin(), path.end());
+
+  std::vector<std::pair<abm::graph::vertex_t, abm::graph::vertex_t>>
+      route_edges;
+  if (path.size() > 2) {
+    // Reverse to arrange from source to destination
+    for (auto itr = path.end() - 1; itr != path.begin(); --itr) {
+      auto nitr = itr - 1;
+      if (itr != path.begin()) {
+        route_edges.emplace_back(
+            std::make_pair<abm::graph::vertex_t, abm::graph::vertex_t>(
+                static_cast<abm::graph::vertex_t>(*itr),
+                static_cast<abm::graph::vertex_t>(*nitr)));
+        std::cout << "route: " << *itr << "\t" << *nitr << "\n";
+      }
+    }
+  }
+  return route_edges;
 }
 
 // Dijktra shortest paths from src to all other vertices
