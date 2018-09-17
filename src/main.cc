@@ -17,25 +17,33 @@ int main(int argc, char** argv) {
     graph->generate_simple_graph();
   }
 
-  /*
   auto router = std::make_unique<abm::Router>(10);
-  router->read_od_pairs("../sf-graph-od-50000.csv");
+  router->read_od_pairs("../sf-od-50000.csv");
 
   const auto routes = router->od_pairs();
 
   unsigned i = 0;
   for (const auto& route : routes) {
+    auto start = std::chrono::system_clock::now();
     // const auto distances = graph->dijkstra_priority_queue(1, -1);
-    const auto sp = graph->dijkstra_priority_queue(route.first, route.second);
+    std::cout << "O-D: " << route.first << "\t" << route.second << "\n";
+    const auto sp = graph->dijkstra(route.first, route.second);
+    auto end = std::chrono::system_clock::now();
+    std::cout << "elapsed time: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(end -
+                                                                       start)
+                     .count()
+              << "ms\n";
     std::cout << ++i << "\n";
     if (i == 1000) break;
   }
-  //*/
 
+  /*
   auto start = std::chrono::system_clock::now();
   const auto path = graph->dijkstra(1020, 20);
   auto end = std::chrono::system_clock::now();
 
+  
   std::chrono::duration<double> elapsed_seconds = end - start;
   std::time_t end_time = std::chrono::system_clock::to_time_t(end);
 

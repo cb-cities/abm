@@ -115,7 +115,7 @@ void abm::Graph::generate_simple_graph() {
   this->add_edge(5, 6, 9.7);
 }
 
-// Dijktra shortest paths from src to all other vertices
+// Dijktra shortest paths from src to a vertex
 std::vector<abm::graph::vertex_t> abm::Graph::dijkstra(
     abm::graph::vertex_t source, abm::graph::vertex_t destination) {
 
@@ -135,12 +135,12 @@ std::vector<abm::graph::vertex_t> abm::Graph::dijkstra(
 
   // Create a vector for distances and initialize all to max
   std::vector<graph::weight_t> distances;
-  distances.resize(nvertices_,
+  distances.resize(this->nvertices_,
                    std::numeric_limits<abm::graph::weight_t>::max());
 
   // Parent array to store shortest path tree
   std::vector<graph::vertex_t> parent;
-  parent.resize(nvertices_, -1);
+  parent.resize(this->nvertices_, -1);
 
   // Insert source itself in priority queue & initialize its distance as 0.
   priority_queue.push(std::make_pair(0., source));
@@ -178,7 +178,7 @@ std::vector<abm::graph::vertex_t> abm::Graph::dijkstra(
 
   std::vector<abm::graph::vertex_t> path;
   // Iterate until source has been reached
-  while (destination != source) {
+  while (destination != source && destination != -1) {
     destination = parent.at(destination);
     if (destination != source) path.emplace_back(destination);
   }
