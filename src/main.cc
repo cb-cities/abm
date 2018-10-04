@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
     router->read_od_pairs("../sf-od-50000.csv");
 
     all_routes = router->od_pairs();
-    all_routes.resize(5000);
+    all_routes.resize(40000);
   }
 
   MPI_Datatype pair_t;
@@ -45,10 +45,12 @@ int main(int argc, char** argv) {
   MPI_Bcast(&chunk_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
   std::vector<std::array<abm::graph::vertex_t, 2>> routes(chunk_size);
 
+  /*
   std::cout << "routes size\t" << mpi_rank << '\t' << routes.size() << '\n';
   std::cout << "all_routes size\t" << mpi_rank << '\t' << all_routes.size() << '\n';
+  */
 
-  MPI_Scatter(all_routes.data(), all_routes.size(), pair_t, routes.data(), routes.size(), pair_t, 0, MPI_COMM_WORLD);
+  MPI_Scatter(all_routes.data(), chunk_size, pair_t, routes.data(), routes.size(), pair_t, 0, MPI_COMM_WORLD);
   //routes = all_routes;
 
   // Paths (vector of edges)
@@ -80,7 +82,7 @@ int main(int argc, char** argv) {
 #if 1
   unsigned path_size = paths.size();
   std::vector<int> paths_sizes(mpi_size);
-  MPI_Gather(&path_size, 1, MPI_INT, paths_sizes.data(), mpi_size, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Gather(&path_size, 1, MPI_INT, paths_sizes.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
   /*int MPI_Gather(MPICH2_CONST void *sendbuf, int sendcnt, MPI_Datatype sendtype,
                       void *recvbuf, int recvcnt, MPI_Datatype recvtype,
                       int root, MPI_Comm comm)
@@ -94,15 +96,24 @@ int main(int argc, char** argv) {
   std::partial_sum(paths_scan.begin(), paths_scan.end(), paths_scan.begin());
   paths_scan.insert(paths_scan.begin(), 0);
 
+  /*
+  std::cout << "paths size\t" << mpi_rank << '\t' << paths.size() << '\n';
   std::cout << "all_paths size\t" << all_paths.size() << '\n';
-  std::cout << "paths stuff\t" << mpi_rank << '\t' << paths_sizes[mpi_rank] << '\t' << paths_scan[mpi_rank] << '\n';
+  if (mpi_rank == 0) {
+    for (int j = 0; j < mpi_size; ++j) {
+      std::cout << "paths stuff\t" << j << '\t' << paths_sizes[j] << '\t' << paths_scan[j] << '\n';
+    }
+  }
+  */
 
   MPI_Gatherv(paths.data(), paths.size(), pair_t, all_paths.data(), paths_sizes.data(), paths_scan.data(), pair_t, 0, MPI_COMM_WORLD);
 #else
   auto all_paths = paths;
 #endif
 
-  std::cout << all_paths.size() << std::endl;
+  if (mpi_rank == 0) {
+    std::cout << all_paths.size() << std::endl;
+  }
 
   /*
   auto start = std::chrono::system_clock::now();
