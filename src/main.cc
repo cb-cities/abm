@@ -24,13 +24,14 @@ int main(int argc, char** argv) {
     MPI_Abort(MPI_COMM_WORLD, 1);
   }
 
-  std::vector<std::pair<abm::graph::vertex_t, abm::graph::vertex_t>> all_routes;
+  std::vector<std::array<abm::graph::vertex_t, 2>> all_routes;
 
   if (mpi_rank == 0) {
     auto router = std::make_unique<abm::Router>(10);
     router->read_od_pairs("../sf-od-50000.csv");
 
     all_routes = router->od_pairs();
+    all_routes.resize(5000);
   }
 
   MPI_Datatype pair_t;
@@ -40,12 +41,19 @@ int main(int argc, char** argv) {
   int mpi_size;
   MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
 
-  auto routes = router->od_pairs();
-  routes.resize(5000);
+  int chunk_size = all_routes.size()/mpi_size;
+  MPI_Bcast(&chunk_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  std::vector<std::array<abm::graph::vertex_t, 2>> routes(chunk_size);
+
+  std::cout << "routes size\t" << mpi_rank << '\t' << routes.size() << '\n';
+  std::cout << "all_routes size\t" << mpi_rank << '\t' << all_routes.size() << '\n';
+
+  MPI_Scatter(all_routes.data(), all_routes.size(), pair_t, routes.data(), routes.size(), pair_t, 0, MPI_COMM_WORLD);
+  //routes = all_routes;
 
   // Paths (vector of edges)
-  std::vector<std::array<abm::graph::vertex_t, 2>> path;
-  path.reserve(graph->nedges());
+  std::vector<std::array<abm::graph::vertex_t, 2>> paths;
+  paths.reserve(graph->nedges());
   unsigned i = 0;
 #pragma omp parallel for schedule(dynamic)
   for (i = 0; i < routes.size(); ++i) {
@@ -69,6 +77,7 @@ int main(int argc, char** argv) {
     // std::cout << i << "\n";
   }
 
+#if 1
   unsigned path_size = paths.size();
   std::vector<int> paths_sizes(mpi_size);
   MPI_Gather(&path_size, 1, MPI_INT, paths_sizes.data(), mpi_size, MPI_INT, 0, MPI_COMM_WORLD);
@@ -78,20 +87,22 @@ int main(int argc, char** argv) {
                       */
 
 
-  std::vector<std::pair<abm::graph::vertex_t, abm::graph::vertex_t>> all_paths(
+  std::vector<std::array<abm::graph::vertex_t, 2>> all_paths(
     std::accumulate(paths_sizes.begin(), paths_sizes.end(), 0)
   );
   auto paths_scan = paths_sizes;
   std::partial_sum(paths_scan.begin(), paths_scan.end(), paths_scan.begin());
+  paths_scan.insert(paths_scan.begin(), 0);
+
+  std::cout << "all_paths size\t" << all_paths.size() << '\n';
+  std::cout << "paths stuff\t" << mpi_rank << '\t' << paths_sizes[mpi_rank] << '\t' << paths_scan[mpi_rank] << '\n';
 
   MPI_Gatherv(paths.data(), paths.size(), pair_t, all_paths.data(), paths_sizes.data(), paths_scan.data(), pair_t, 0, MPI_COMM_WORLD);
-  /*
-   * int MPI_Gatherv(MPICH2_CONST void *sendbuf, int sendcnt, MPI_Datatype sendtype,
-                       void *recvbuf, MPICH2_CONST int *recvcnts,
-                       MPICH2_CONST int *displs, MPI_Datatype recvtype,
-                       int root, MPI_Comm comm)
-*/
-  std::cout << "Path sizes: " << all_paths.size() << "\n";
+#else
+  auto all_paths = paths;
+#endif
+
+  std::cout << all_paths.size() << std::endl;
 
   /*
   auto start = std::chrono::system_clock::now();
