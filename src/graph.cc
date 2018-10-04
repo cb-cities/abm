@@ -199,7 +199,7 @@ std::vector<std::pair<abm::graph::vertex_t, abm::graph::vertex_t>>
             std::make_pair<abm::graph::vertex_t, abm::graph::vertex_t>(
                 static_cast<abm::graph::vertex_t>(*itr),
                 static_cast<abm::graph::vertex_t>(*nitr)));
-        std::cout << "route: " << *itr << "\t" << *nitr << "\n";
+        // std::cout << "route: " << *itr << "\t" << *nitr << "\n";
       }
     }
   }

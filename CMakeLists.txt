@@ -36,6 +36,12 @@ option(ABM_BUILD_TESTING "enable testing for abm" ON)
 # CMake Modules
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 
+# OpenMP
+find_package(OpenMP REQUIRED)
+if (OPENMP_FOUND)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
+
 # Include directories
 include_directories(BEFORE
   ${abm_SOURCE_DIR}/include/

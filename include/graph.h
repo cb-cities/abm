@@ -59,9 +59,6 @@ class Graph {
   //! \param[in] directed Defines if the graph is directed or not
   explicit Graph(bool directed) : directed_{directed} {};
 
-  //! Return number of vertices
-  unsigned nvertices() const { return nvertices_; }
-
   //! Add edge to graph
   //! \param[in] vertex1 ID of vertex1
   //! \param[in] vertex2 ID of vertex2
@@ -81,6 +78,12 @@ class Graph {
   //! \param[in] vertex2 ID of vertex2
   void remove_edge(graph::vertex_t vertex1, graph::vertex_t vertex2);
 
+  //! Return number of vertices
+  unsigned nvertices() const { return nvertices_; }
+  
+  //! Number of edges
+  graph::vertex_t nedges() const { return edges_.size(); }
+
   //! Generate a simple graph
   void generate_simple_graph();
 
@@ -91,24 +94,10 @@ class Graph {
 
   //! Compute the shortest path using priority queue
   //! \param[in] source ID of source vertex1
-  //! \param[in] destination ID of destination vertex
-  //! \retval route_edges Edges of the route from source to destination
-  std::vector<std::pair<graph::vertex_t, graph::vertex_t>> dijkstra(
-      graph::vertex_t source, graph::vertex_t destination);
-
-  //! Compute the shortest path using priority queue
-  //! \param[in] source ID of source vertex1
   //! \param[in] destination ID of destination vertex (default is -1 for SSSP)
   //! \retval sp Shortest path and distances
   ShortestPath dijkstra_priority_queue(graph::vertex_t source,
                                        graph::vertex_t destination = -1);
-
-  //! Compute the shortest path using priority queue
-  //! \param[in] source ID of source vertex1
-  //! \param[in] destinations IDs of destination vertex
-  //! \retval sp Shortest path and distances
-  ShortestPath dijkstra_priority_queue(
-      graph::vertex_t source, const std::vector<graph::vertex_t>& destinations);
 
  private:
   //! Assign number of vertices

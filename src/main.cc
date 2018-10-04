@@ -1,3 +1,5 @@
+#include "omp.h"
+
 #include <chrono>
 #include <ctime>
 #include <memory>
@@ -22,23 +24,31 @@ int main(int argc, char** argv) {
 
   const auto routes = router->od_pairs();
 
-  unsigned i = 0;
+  // Paths (vector of edges)
   std::vector<std::pair<abm::graph::vertex_t, abm::graph::vertex_t>> path;
-  for (const auto& route : routes) {
-    auto start = std::chrono::system_clock::now();
+  path.reserve(graph->nedges());
+  std::vector<std::pair<abm::graph::vertex_t, abm::graph::vertex_t>> sp;
+  unsigned i = 0;
+#pragma omp parallel for schedule(dynamic)
+  for (i = 0; i < 5000; ++i) {
+    // auto start = std::chrono::system_clock::now();
     // const auto distances = graph->dijkstra_priority_queue(1, -1);
-    std::cout << "O-D: " << route.first << "\t" << route.second << "\n";
-    const auto sp = graph->dijkstra(route.first, route.second);
+    // std::cout << "O-D: " << route.first << "\t" << route.second << "\n";
+    sp = graph->dijkstra(routes[i].first, routes[i].second);
+
+#pragma omp critical
     path.insert(std::end(path), std::begin(sp), std::end(sp));
+
+    // auto end = std::chrono::system_clock::now();
+    /*
     std::cout << "Total path size: " << path.size() << "\n";
-    auto end = std::chrono::system_clock::now();
     std::cout << "elapsed time: "
               << std::chrono::duration_cast<std::chrono::milliseconds>(end -
                                                                        start)
                      .count()
               << "ms\n";
-    std::cout << ++i << "\n";
-    if (i == 5) break;
+    */
+    //std::cout << i << "\n";
   }
 
   /*
