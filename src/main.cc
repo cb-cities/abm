@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
   routes.resize(5000);
 
   // Paths (vector of edges)
-  std::vector<std::pair<abm::graph::vertex_t, abm::graph::vertex_t>> path;
+  std::vector<std::array<abm::graph::vertex_t, 2>> path;
   path.reserve(graph->nedges());
   unsigned i = 0;
 #pragma omp parallel for schedule(dynamic)

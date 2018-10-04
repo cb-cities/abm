@@ -96,7 +96,7 @@ class Graph {
   //! \param[in] source ID of source vertex1
   //! \param[in] destination ID of destination vertex
   //! \retval route_edges Edges of the route from source to destination
-  std::vector<std::pair<graph::vertex_t, graph::vertex_t>> dijkstra(
+  std::vector<std::array<graph::vertex_t, 2>> dijkstra(
       graph::vertex_t source, graph::vertex_t destination);
 
   //! Compute the shortest path using priority queue
