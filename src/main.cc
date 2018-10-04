@@ -1,13 +1,19 @@
+#include "mpi.h"
 #include "omp.h"
 
 #include <chrono>
 #include <ctime>
 #include <memory>
+#include <numeric>
 
 #include "graph.h"
 #include "router.h"
 
 int main(int argc, char** argv) {
+  MPI_Init(&argc, &argv);
+  int mpi_rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+
   const bool directed = true;
   auto graph = std::make_unique<abm::Graph>(directed);
   if (argc > 1) {
@@ -15,12 +21,24 @@ int main(int argc, char** argv) {
     const std::string filename = argv[1];
     graph->read_graph_matrix_market(filename);
   } else {
-    // Generate a simple graph
-    graph->generate_simple_graph();
+    MPI_Abort(MPI_COMM_WORLD, 1);
   }
 
-  auto router = std::make_unique<abm::Router>(10);
-  router->read_od_pairs("../sf-od-50000.csv");
+  std::vector<std::pair<abm::graph::vertex_t, abm::graph::vertex_t>> all_routes;
+
+  if (mpi_rank == 0) {
+    auto router = std::make_unique<abm::Router>(10);
+    router->read_od_pairs("../sf-od-50000.csv");
+
+    all_routes = router->od_pairs();
+  }
+
+  MPI_Datatype pair_t;
+  MPI_Type_vector(2,1,1,MPI_INT,&pair_t);
+  MPI_Type_commit(&pair_t);
+
+  int mpi_size;
+  MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
 
   auto routes = router->od_pairs();
   routes.resize(5000);
@@ -37,11 +55,11 @@ int main(int argc, char** argv) {
     const auto sp = graph->dijkstra(routes[i][0], routes[i][1]);
 
 #pragma omp critical
-    path.insert(std::end(path), std::begin(sp), std::end(sp));
+    paths.insert(std::end(paths), std::begin(sp), std::end(sp));
 
     // auto end = std::chrono::system_clock::now();
     /*
-    std::cout << "Total path size: " << path.size() << "\n";
+    std::cout << "Total path size: " << paths.size() << "\n";
     std::cout << "elapsed time: "
               << std::chrono::duration_cast<std::chrono::milliseconds>(end -
                                                                        start)
@@ -50,7 +68,31 @@ int main(int argc, char** argv) {
     */
     // std::cout << i << "\n";
   }
-  std::cout << "Path sizes: " << path.size() << "\n";
+
+  unsigned path_size = paths.size();
+  std::vector<int> paths_sizes(mpi_size);
+  MPI_Gather(&path_size, 1, MPI_INT, paths_sizes.data(), mpi_size, MPI_INT, 0, MPI_COMM_WORLD);
+  /*int MPI_Gather(MPICH2_CONST void *sendbuf, int sendcnt, MPI_Datatype sendtype,
+                      void *recvbuf, int recvcnt, MPI_Datatype recvtype,
+                      int root, MPI_Comm comm)
+                      */
+
+
+  std::vector<std::pair<abm::graph::vertex_t, abm::graph::vertex_t>> all_paths(
+    std::accumulate(paths_sizes.begin(), paths_sizes.end(), 0)
+  );
+  auto paths_scan = paths_sizes;
+  std::partial_sum(paths_scan.begin(), paths_scan.end(), paths_scan.begin());
+
+  MPI_Gatherv(paths.data(), paths.size(), pair_t, all_paths.data(), paths_sizes.data(), paths_scan.data(), pair_t, 0, MPI_COMM_WORLD);
+  /*
+   * int MPI_Gatherv(MPICH2_CONST void *sendbuf, int sendcnt, MPI_Datatype sendtype,
+                       void *recvbuf, MPICH2_CONST int *recvcnts,
+                       MPICH2_CONST int *displs, MPI_Datatype recvtype,
+                       int root, MPI_Comm comm)
+*/
+  std::cout << "Path sizes: " << all_paths.size() << "\n";
+
   /*
   auto start = std::chrono::system_clock::now();
   const auto path = graph->dijkstra(1020, 20);
@@ -75,4 +117,6 @@ int main(int argc, char** argv) {
     ++i;
   }
   */
+
+  MPI_Finalize();
 }
