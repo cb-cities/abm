@@ -1,6 +1,7 @@
 #ifndef _ABM_ROUTER_H_
 #define _ABM_ROUTER_H_
 
+#include <array>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -20,8 +21,7 @@ class Router {
   bool read_od_pairs(const std::string& filename);
 
   //! Return OD pairs
-  std::vector<std::pair<abm::graph::vertex_t, abm::graph::vertex_t>> od_pairs()
-      const {
+  std::vector<std::array<abm::graph::vertex_t, 2>> od_pairs() const {
     return this->od_pairs_;
   }
 
@@ -29,7 +29,7 @@ class Router {
   //! Number of agents
   unsigned nagents_;
   //! OD pairs
-  std::vector<std::pair<abm::graph::vertex_t, abm::graph::vertex_t>> od_pairs_;
+  std::vector<std::array<abm::graph::vertex_t, 2>> od_pairs_;
 };
 }  // namespace abm
 #endif  // _ABM_ROUTER_H_

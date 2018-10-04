@@ -22,18 +22,19 @@ int main(int argc, char** argv) {
   auto router = std::make_unique<abm::Router>(10);
   router->read_od_pairs("../sf-od-50000.csv");
 
-  const auto routes = router->od_pairs();
+  auto routes = router->od_pairs();
+  routes.resize(5000);
 
   // Paths (vector of edges)
   std::vector<std::pair<abm::graph::vertex_t, abm::graph::vertex_t>> path;
   path.reserve(graph->nedges());
   unsigned i = 0;
 #pragma omp parallel for schedule(dynamic)
-  for (i = 0; i < 5000; ++i) {
+  for (i = 0; i < routes.size(); ++i) {
     // auto start = std::chrono::system_clock::now();
     // const auto distances = graph->dijkstra_priority_queue(1, -1);
     // std::cout << "O-D: " << route.first << "\t" << route.second << "\n";
-    const auto sp = graph->dijkstra(routes[i].first, routes[i].second);
+    const auto sp = graph->dijkstra(routes[i][0], routes[i][1]);
 
 #pragma omp critical
     path.insert(std::end(path), std::begin(sp), std::end(sp));

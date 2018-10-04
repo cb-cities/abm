@@ -20,7 +20,8 @@ bool abm::Router::read_od_pairs(const std::string& filename) {
           while (istream.good()) {
             // Read vertices edges and weights
             istream >> ignore >> v1 >> v2 >> weight;
-            this->od_pairs_.emplace_back(std::make_pair(v1, v2));
+            std::array<abm::graph::vertex_t, 2> od = {v1, v2};
+            this->od_pairs_.emplace_back(od);
           }
         }
       }
