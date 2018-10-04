@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
     router->read_od_pairs("../sf-od-50000.csv");
 
     all_routes = router->od_pairs();
-    all_routes.resize(40000);
+    all_routes.resize(5000);
   }
 
   MPI_Datatype pair_t;
@@ -51,7 +51,10 @@ int main(int argc, char** argv) {
   */
 
   MPI_Scatter(all_routes.data(), chunk_size, pair_t, routes.data(), routes.size(), pair_t, 0, MPI_COMM_WORLD);
-  //routes = all_routes;
+  int chunk_remainder = all_routes.size()%mpi_size;
+  if (mpi_rank == 0) {
+    routes.insert(routes.begin(), all_routes.end()-chunk_remainder, all_routes.end());
+  }
 
   // Paths (vector of edges)
   std::vector<std::array<abm::graph::vertex_t, 2>> paths;
