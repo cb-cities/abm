@@ -64,7 +64,7 @@ class Graph {
 
   //! Number of edges
   graph::vertex_t nedges() const { return edges_.size(); }
-  
+
   //! Add edge to graph
   //! \param[in] vertex1 ID of vertex1
   //! \param[in] vertex2 ID of vertex2
