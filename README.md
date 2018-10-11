@@ -17,18 +17,8 @@
 
 ## Run 
 
-* To run the abm `./abm ../sf.mtx`, because the executable `abm` would be generated inside the build directory. 
+* To run the abm from build directory, `./abm ../network.mtx ../sf-od-50k.csv`. 
 
-* Running just `./abm` will run the shortest path for the sample graph whose output is:
-
-```
-5 dist 21.2
-4 dist 20.7
-6 dist 11.5
-3 dist 9.1
-1 dist 0
-2 dist 7.5
-```
 
 ### Run tests
 
