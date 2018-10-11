@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
   MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
 
   const bool directed = true;
-  auto graph = std::make_unique<abm::Graph>(directed);
+  auto graph = std::make_shared<abm::Graph>(directed);
 
   std::string od_pairs;
   if (argc == 3) {
@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
   std::vector<std::array<abm::graph::vertex_t, 2>> all_routes;
 
   if (mpi_rank == 0) {
-    auto router = std::make_unique<abm::Router>(10);
+    auto router = std::make_unique<abm::Router>(5000, graph);
     router->read_od_pairs(od_pairs);
 
     all_routes = router->od_pairs();

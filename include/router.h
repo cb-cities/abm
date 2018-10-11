@@ -8,13 +8,15 @@
 #include <vector>
 
 #include "config.h"
+#include "graph.h"
 
 namespace abm {
 //! \brief Router of agents
 class Router {
  public:
   //! Constructor with number of agents
-  explicit Router(unsigned nagents) : nagents_{nagents} {};
+  explicit Router(unsigned nagents, const std::shared_ptr<abm::Graph>& graph)
+      : nagents_{nagents}, graph_{graph} {};
 
   //! Get OD pairs
   //! \param[in] filename containing origin destination pairs
@@ -28,6 +30,8 @@ class Router {
  private:
   //! Number of agents
   unsigned nagents_;
+  //! Graph
+  std::shared_ptr<abm::Graph> graph_;
   //! OD pairs
   std::vector<std::array<abm::graph::vertex_t, 2>> od_pairs_;
 };
