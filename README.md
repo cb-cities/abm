@@ -1,4 +1,4 @@
-# Dijkstra Binary Heap Queue
+# City-Scale Agent Based Modelling
 > CB-Cities
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/cb-cities/abm/develop/license.md)
@@ -17,7 +17,7 @@
 
 ## Run 
 
-* To run the dijkstra shortest path `./abm ../sf.mtx`, because the executable `abm` would be generated inside the build directory. 
+* To run the abm `./abm ../sf.mtx`, because the executable `abm` would be generated inside the build directory. 
 
 * Running just `./abm` will run the shortest path for the sample graph whose output is:
 
