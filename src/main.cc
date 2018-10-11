@@ -17,9 +17,12 @@ int main(int argc, char** argv) {
 
   const bool directed = true;
   auto graph = std::make_unique<abm::Graph>(directed);
-  if (argc > 1) {
+
+  std::string od_pairs;
+  if (argc == 3) {
     // Read MatrixMarket file
     const std::string filename = argv[1];
+    od_pairs = argv[2];
     graph->read_graph_matrix_market(filename);
   } else {
     MPI_Abort(MPI_COMM_WORLD, 1);
@@ -29,7 +32,7 @@ int main(int argc, char** argv) {
 
   if (mpi_rank == 0) {
     auto router = std::make_unique<abm::Router>(10);
-    router->read_od_pairs("../sf-od-50000.csv");
+    router->read_od_pairs(od_pairs);
 
     all_routes = router->od_pairs();
     all_routes.resize(5000);
@@ -45,10 +48,6 @@ int main(int argc, char** argv) {
   int chunk_size = all_routes.size() / mpi_size;
   MPI_Bcast(&chunk_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
   std::vector<std::array<abm::graph::vertex_t, 2>> routes(chunk_size);
-
-  //  std::cout << "routes size\t" << mpi_rank << '\t' << routes.size() << '\n';
-  // std::cout << "all_routes size\t" << mpi_rank << '\t' << all_routes.size()
-  // << '\n';
 
   MPI_Scatter(all_routes.data(), chunk_size, pair_t, routes.data(),
               routes.size(), pair_t, 0, MPI_COMM_WORLD);
@@ -70,7 +69,6 @@ int main(int argc, char** argv) {
     paths.insert(std::end(paths), std::begin(sp), std::end(sp));
   }
 
-#if 1
   unsigned path_size = paths.size();
   std::vector<int> paths_sizes(mpi_size);
   MPI_Gather(&path_size, 1, MPI_INT, paths_sizes.data(), 1, MPI_INT, 0,
@@ -84,13 +82,8 @@ int main(int argc, char** argv) {
 
   MPI_Gatherv(paths.data(), paths.size(), pair_t, all_paths.data(),
               paths_sizes.data(), paths_scan.data(), pair_t, 0, MPI_COMM_WORLD);
-#else
-  auto all_paths = paths;
-#endif
 
-  if (mpi_rank == 0) {
-    std::cout << all_paths.size() << std::endl;
-  }
+  if (mpi_rank == 0) std::cout << all_paths.size() << std::endl;
 
   MPI_Finalize();
 }
