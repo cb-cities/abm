@@ -8,7 +8,7 @@ jobs:
       - checkout
       # GCC-8
       - run:
-          name: GCC-8 build
+          name: MPICXX build
           command: |
             mkdir -p build
             [ "$(ls -A build)" ] && rm -rf build/*
@@ -38,6 +38,10 @@ jobs:
             mkdir -p build
             [ "$(ls -A build)" ] && rm -rf build/*
             cd build
+            source /etc/profile.d/modules.sh
+            export MODULEPATH=$MODULEPATH:/usr/share/modulefiles
+            module load mpi/openmpi-x86_64
+            export CXX_COMPILER=mpicxx
             cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=mpicxx -DCMAKE_EXPORT_COMPILE_COMMANDS=On -DENABLE_COVERAGE=On ..
             make -j4
             ctest -VV
