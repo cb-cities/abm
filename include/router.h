@@ -7,6 +7,8 @@
 #include <sstream>
 #include <vector>
 
+#include "csv.h"
+
 #include "config.h"
 #include "graph.h"
 

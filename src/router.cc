@@ -4,29 +4,13 @@
 bool abm::Router::read_od_pairs(const std::string& filename) {
   bool status = true;
   try {
-    std::fstream file;
-    file.open(filename.c_str(), std::ios::in);
-    if (file.is_open() && file.good()) {
-      // Line
-      std::string line;
-      double ignore;
-      while (std::getline(file, line)) {
-        std::istringstream istream(line);
-        int v1, v2;
-        double weight;
-        // ignore comment lines (# or !) or blank lines
-        if ((line.find('#') == std::string::npos) &&
-            (line.find('%') == std::string::npos) && (line != "")) {
-          while (istream.good()) {
-            // Read vertices edges and weights
-            istream >> ignore >> v1 >> v2 >> weight;
-            std::array<abm::graph::vertex_t, 2> od = {v1, v2};
-            this->od_pairs_.emplace_back(od);
-          }
-        }
-      }
-    } else {
-      throw std::runtime_error("Input file not found");
+    io::CSVReader<2> in(filename);
+    in.read_header(io::ignore_extra_column, "origin", "destination");
+    int v1, v2;
+    double weight;
+    while (in.read_row(v1, v2)) {
+      std::array<abm::graph::vertex_t, 2> od = {v1, v2};
+      this->od_pairs_.emplace_back(od);
     }
   } catch (std::exception& exception) {
     std::cout << "Read OD file: " << exception.what() << "\n";

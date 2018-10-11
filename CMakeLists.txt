@@ -61,6 +61,7 @@ if(ABM_BUILD_TESTING)
   SET(test_src
     ${abm_SOURCE_DIR}/tests/test_main.cc
     ${abm_SOURCE_DIR}/tests/graph_test.cc
+    ${abm_SOURCE_DIR}/tests/router_test.cc
     )
   add_executable(abmtest ${abm_src} ${test_src})
   add_test(NAME abmtest COMMAND $<TARGET_FILE:abmtest>)
