@@ -13,14 +13,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace abm {
-namespace graph {
-//! Vertex id type
-using vertex_t = int;
-//! Weight type, that can be added with +
-using weight_t = double;
-}  // namespace graph
-}  // namespace abm
+#include "config.h"
 
 namespace abm {
 //! \brief ShortestPath struct to return source, distance and parents
@@ -51,7 +44,7 @@ struct ShortestPath {
   //! Distances
   std::vector<graph::weight_t> distances;
   //! Parent array to store shortest path tree
-  std::unordered_map<graph::vertex_t, graph::vertex_t> parent;
+  std::vector<graph::vertex_t> parent;
 };
 
 //! \brief Graph class to store vertices and edge and compute shortest path
@@ -68,6 +61,9 @@ class Graph {
 
   //! Return number of vertices
   unsigned nvertices() const { return nvertices_; }
+
+  //! Number of edges
+  graph::vertex_t nedges() const { return edges_.size(); }
 
   //! Add edge to graph
   //! \param[in] vertex1 ID of vertex1
@@ -95,6 +91,13 @@ class Graph {
   //! \param[in] filename Name of input MatrixMarket file
   //! \retval status File read status
   bool read_graph_matrix_market(const std::string& filename);
+
+  //! Compute the shortest path using priority queue
+  //! \param[in] source ID of source vertex1
+  //! \param[in] destination ID of destination vertex
+  //! \retval route_edges Edges of the route from source to destination
+  std::vector<std::array<graph::vertex_t, 2>> dijkstra(
+      graph::vertex_t source, graph::vertex_t destination);
 
   //! Compute the shortest path using priority queue
   //! \param[in] source ID of source vertex1
