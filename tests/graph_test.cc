@@ -8,6 +8,8 @@
 TEST_CASE("Graph class and shortest-path is checked", "[graph][sp][od]") {
   // Tolerance
   const double Tolerance = 1.E-7;
+  // Path
+  const std::string path = "../";
 
   // Test directed graph
   SECTION("Test SSSP in directed graph") {
@@ -152,7 +154,7 @@ TEST_CASE("Graph class and shortest-path is checked", "[graph][sp][od]") {
     // Create graph object
     auto graph = std::make_unique<abm::Graph>(directed);
     // Read MatrixMarket file
-    const std::string filename = "../network.mtx";
+    const std::string filename = path + "network.mtx";
     // Read file
     REQUIRE(graph->read_graph_matrix_market(filename) == true);
 
