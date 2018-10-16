@@ -27,12 +27,11 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Router::compute_routes(
   MPI_Datatype pair_t;
   MPI_Type_vector(2, 1, 1, MPI_INT, &pair_t);
   MPI_Type_commit(&pair_t);
-  
+
   // Calculate chunk size to split router
   int chunk_size = this->all_od_pairs_.size() / mpi_size;
   MPI_Bcast(&chunk_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
   std::vector<std::array<abm::graph::vertex_t, 2>> od_pairs(chunk_size);
-
 
   // Send route chunks to different compute nodes
   MPI_Scatter(all_od_pairs_.data(), chunk_size, pair_t, od_pairs.data(),
@@ -43,7 +42,7 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Router::compute_routes(
     od_pairs.insert(od_pairs.begin(), all_od_pairs_.end() - chunk_remainder,
                     all_od_pairs_.end());
   }
-  
+
   // Paths (vector of edges)
   std::vector<std::array<abm::graph::vertex_t, 2>> paths;
   paths.reserve(graph_->nedges());
@@ -65,7 +64,10 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Router::compute_routes(
   }
 
   // Get all paths and indices
-  this->all_paths_ = abm::gather_vector_arrays(paths);
-  const auto all_paths_idx = abm::gather_vector_arrays(paths_idx);
+  all_paths_ = abm::gather_vector_arrays(paths);
+  all_paths_idx_ = abm::gather_vector_arrays(paths_idx);
+
+  MPI_Type_free(&pair_t);
+
   return all_paths_;
 }

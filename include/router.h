@@ -45,6 +45,8 @@ class Router {
   std::vector<std::array<abm::graph::vertex_t, 2>> all_od_pairs_;
   //! All paths
   std::vector<std::array<abm::graph::vertex_t, 2>> all_paths_;
+  //! All paths indices
+  std::vector<std::array<abm::graph::vertex_t, 3>> all_paths_idx_;
 };
 }  // namespace abm
 #endif  // _ABM_ROUTER_H_
