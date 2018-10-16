@@ -37,8 +37,6 @@ class Router {
                                                                   int mpi_size);
 
  private:
-  //! Number of agents
-  unsigned nagents_;
   //! Graph
   std::shared_ptr<abm::Graph> graph_;
   //! All OD pairs
