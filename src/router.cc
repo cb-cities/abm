@@ -36,6 +36,7 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Router::compute_routes(
   // Send route chunks to different compute nodes
   MPI_Scatter(all_od_pairs_.data(), chunk_size, pair_t, od_pairs.data(),
               od_pairs.size(), pair_t, 0, MPI_COMM_WORLD);
+
   // Calculate the remaining chunk of od_pairs and add to rank 0
   int chunk_remainder = all_od_pairs_.size() % mpi_size;
   if (mpi_rank == 0) {

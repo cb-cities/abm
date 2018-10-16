@@ -1,6 +1,7 @@
 #include <memory>
 
 #include "catch.hpp"
+#include "mpi.h"
 
 #include "router.h"
 
@@ -44,6 +45,20 @@ TEST_CASE("Router class is checked", "[router]") {
       const std::string filename = path + "incorrect-od.csv";
       // Read file should fail
       REQUIRE(router->read_od_pairs(filename) == false);
+    }
+
+    SECTION("Compute routes") {
+      // MPI ranks
+      int mpi_rank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+
+      // Get number of MPI ranks
+      int mpi_size;
+      MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+
+      REQUIRE(router->read_od_pairs(od_pairs, 50) == true);
+      const auto all_paths = router->compute_routes(mpi_rank, mpi_size);
+      REQUIRE(all_paths.size() == 3564);
     }
   }
 }

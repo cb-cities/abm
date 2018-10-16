@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "csv.h"
+#include "omp.h"
 
 #include "config.h"
 #include "graph.h"
