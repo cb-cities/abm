@@ -28,11 +28,8 @@ int main(int argc, char** argv) {
   }
 
   // On MPI rank 0 create a router and fetch all OD pairs
-  std::shared_ptr<abm::Router> router;
-  if (mpi_rank == 0) {
-    router = std::make_shared<abm::Router>(graph);
-    router->read_od_pairs(od_file, 5000);
-  }
+  auto router = std::make_unique<abm::Router>(graph);
+  router->read_od_pairs(od_file, 5000);
 
   // Get number of MPI ranks
   int mpi_size;
