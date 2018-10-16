@@ -1,6 +1,8 @@
 #ifndef _ABM_MPI_H_
 #define _ABM_MPI_H_
 
+#include "mpi.h"
+
 namespace abm {
 template <typename Tdatatype, size_t Tnsize>
 std::vector<std::array<Tdatatype, Tnsize>> gather_vector_arrays(

@@ -24,7 +24,7 @@ TEST_CASE("Router class is checked", "[router]") {
     // Create a simple example graph
     graph->read_graph_matrix_market(graph_file);
 
-    auto router = std::make_unique<abm::Router>(5000, graph);
+    auto router = std::make_unique<abm::Router>(graph);
     REQUIRE(router->read_od_pairs(od_pairs) == true);
 
     auto all_routes = router->od_pairs();
