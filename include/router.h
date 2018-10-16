@@ -33,7 +33,8 @@ class Router {
   }
 
   //! Compute routes
-  std::vector<std::array<abm::graph::vertex_t, 2>> compute_routes(int mpi_rank);
+  std::vector<std::array<abm::graph::vertex_t, 2>> compute_routes(int mpi_rank,
+                                                                  int mpi_size);
 
  private:
   //! Number of agents

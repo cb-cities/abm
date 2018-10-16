@@ -34,7 +34,11 @@ int main(int argc, char** argv) {
     router->read_od_pairs(od_file, 5000);
   }
 
-  const auto all_paths = router->compute_routes(mpi_rank);
+  // Get number of MPI ranks
+  int mpi_size;
+  MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+
+  const auto all_paths = router->compute_routes(mpi_rank, mpi_size);
 
   if (mpi_rank == 0)
     std::cout << "Collected paths: " << all_paths.size() << std::endl;

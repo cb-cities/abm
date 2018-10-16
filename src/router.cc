@@ -22,20 +22,22 @@ bool abm::Router::read_od_pairs(const std::string& filename, int nagents) {
 }
 
 std::vector<std::array<abm::graph::vertex_t, 2>> abm::Router::compute_routes(
-    int mpi_rank) {
+    int mpi_rank, int mpi_size) {
   // Create MPI pair type
   MPI_Datatype pair_t;
   MPI_Type_vector(2, 1, 1, MPI_INT, &pair_t);
   MPI_Type_commit(&pair_t);
 
-  // Get number of MPI ranks
-  int mpi_size;
-  MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-
+  std::cout << __FILE__ << __LINE__ << "\n";
+ 
   // Calculate chunk size to split router
   int chunk_size = this->all_od_pairs_.size() / mpi_size;
+  std::cout << __FILE__ << __LINE__ << "\n";
   MPI_Bcast(&chunk_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  std::cout << __FILE__ << __LINE__ << "\n";
   std::vector<std::array<abm::graph::vertex_t, 2>> od_pairs(chunk_size);
+
+  std::cout << __FILE__ << __LINE__ << "\n";
 
   // Send route chunks to different compute nodes
   MPI_Scatter(all_od_pairs_.data(), chunk_size, pair_t, od_pairs.data(),
@@ -46,6 +48,8 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Router::compute_routes(
     od_pairs.insert(od_pairs.begin(), all_od_pairs_.end() - chunk_remainder,
                     all_od_pairs_.end());
   }
+
+  std::cout << __FILE__ << __LINE__ << "\n";
 
   // Paths (vector of edges)
   std::vector<std::array<abm::graph::vertex_t, 2>> paths;
@@ -71,6 +75,6 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Router::compute_routes(
     // Get all paths and indices
     this->all_paths_ = abm::gather_vector_arrays(paths);
     const auto all_paths_idx = abm::gather_vector_arrays(paths_idx);
+    return all_paths_;
   }
-  return all_paths_;
 }
