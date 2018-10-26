@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
 
   // On MPI rank 0 create a router and fetch all OD pairs
   auto router = std::make_unique<abm::Router>(graph);
-  router->read_od_pairs(od_file, 5000);
+  router->read_od_pairs(od_file);
 
   const auto all_paths = router->compute_routes(mpi_rank, mpi_size);
 
