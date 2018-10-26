@@ -1,12 +1,15 @@
 #ifndef _ABM_MPI_H_
 #define _ABM_MPI_H_
 
+#ifdef USE_MPI
 #include "mpi.h"
+#endif
 
 namespace abm {
 template <typename Tdatatype, size_t Tnsize>
 std::vector<std::array<Tdatatype, Tnsize>> gather_vector_arrays(
     std::vector<std::array<Tdatatype, Tnsize>> const& x) {
+#ifdef USE_MPI
   MPI_Datatype arr_t;
   MPI_Type_vector(Tnsize, 1, 1, MPI_INT, &arr_t);
   MPI_Type_commit(&arr_t);
@@ -31,6 +34,9 @@ std::vector<std::array<Tdatatype, Tnsize>> gather_vector_arrays(
   MPI_Type_free(&arr_t);
 
   return all_x;
+#else
+  return x;
+#endif
 }
 
 }  // namespace abm

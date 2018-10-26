@@ -36,6 +36,14 @@ option(ABM_BUILD_TESTING "enable testing for abm" ON)
 # CMake Modules
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 
+# MPI
+find_package(MPI)
+if (MPI_FOUND)
+  add_definitions("-DUSE_MPI")
+  include_directories(${MPI_CXX_INCLUDE_DIRS})
+  link_libraries(${MPI_CXX_LIBRARIES})
+endif()
+
 # OpenMP
 find_package(OpenMP REQUIRED)
 if (OPENMP_FOUND)
