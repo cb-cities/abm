@@ -184,7 +184,8 @@ TEST_CASE("Graph class and shortest-path is checked", "[graph][sp][od]") {
       REQUIRE(sp.size() == 150);
 
       std::chrono::duration<double> elapsed_seconds = end - start;
-      std::cout << "Bidirectional Dijkstra: " << elapsed_seconds.count() << "s\n";
+      std::cout << "Bidirectional Dijkstra: " << elapsed_seconds.count()
+                << "s\n";
     }
 
     SECTION("Dijkstra") {

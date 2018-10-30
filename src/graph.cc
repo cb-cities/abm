@@ -155,7 +155,7 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Graph::dijkstra(
   distances.at(source) = 0.;
 
   unsigned i = 0;
-  
+
   // Looping till priority queue becomes empty (or all
   // distances are not finalized)
   while (!priority_queue.empty()) {
@@ -188,7 +188,7 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Graph::dijkstra(
   }
 
   std::cout << "Niters: " << i << "\n";
-    
+
   std::vector<abm::graph::vertex_t> path;
   path.emplace_back(destination);
   // Iterate until source has been reached
@@ -371,7 +371,6 @@ abm::ShortestPath abm::Graph::dijkstra_priority_queue(
   return sp;
 }
 
-
 // Dijktra shortest paths from src to a vertex
 std::vector<std::array<abm::graph::vertex_t, 2>>
     abm::Graph::bidirectional_dijkstra(abm::graph::vertex_t source,
@@ -406,7 +405,7 @@ std::vector<std::array<abm::graph::vertex_t, 2>>
   // Create a vector for distances and initialize all to max
   std::vector<graph::weight_t> reverse_distances;
   reverse_distances.resize(this->nvertices_,
-                   std::numeric_limits<abm::graph::weight_t>::max());
+                           std::numeric_limits<abm::graph::weight_t>::max());
 
   // Parent array to store shortest path tree
   std::vector<graph::vertex_t> parent;
@@ -425,16 +424,16 @@ std::vector<std::array<abm::graph::vertex_t, 2>>
   reverse_distances.at(destination) = 0.;
 
   std::vector<graph::vertex_t> nodes, reverse_nodes, intersection;
- 
+
   // Looping till priority queue becomes empty (or all
   // distances are not finalized)
   unsigned i = 0;
 
   double mu = std::numeric_limits<double>::max();
-  
+
   while (!priority_queue.empty() && !reverse_priority_queue.empty()) {
     ++i;
-    
+
     // {min_weight, vertex} sorted based on weights (distance)
     abm::graph::vertex_t u = priority_queue.top().second;
     abm::graph::weight_t w1 = priority_queue.top().first;
@@ -455,7 +454,7 @@ std::vector<std::array<abm::graph::vertex_t, 2>>
       for (auto i : intersection) {
         if (distances.at(i) + reverse_distances.at(i) < mu)
           mu = distances.at(i) + reverse_distances.at(i);
-        if (w1+w2 > mu) break;
+        if (w1 + w2 > mu) break;
       }
     }
 
@@ -486,7 +485,7 @@ std::vector<std::array<abm::graph::vertex_t, 2>>
       // Get vertex label and weight of neighbours of v.
       const abm::graph::vertex_t neighbour = edge->first.first;
       const abm::graph::weight_t weight = edge->second;
-      
+
       // Distance from source to neighbour
       // distance_v = distance to current node + weight of edge v to
       // neighbour
@@ -500,7 +499,6 @@ std::vector<std::array<abm::graph::vertex_t, 2>>
         reverse_priority_queue.push(std::make_pair(distance_v, neighbour));
       }
     }
-
   }
 
   std::cout << "BD: Niters: " << i << "\t" << intersection[0] << "\n";
