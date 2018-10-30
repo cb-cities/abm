@@ -101,6 +101,13 @@ class Graph {
 
   //! Compute the shortest path using priority queue
   //! \param[in] source ID of source vertex1
+  //! \param[in] destination ID of destination vertex
+  //! \retval route_edges Edges of the route from source to destination
+  std::vector<std::array<graph::vertex_t, 2>> bidirectional_dijkstra(
+      graph::vertex_t source, graph::vertex_t destination);
+
+  //! Compute the shortest path using priority queue
+  //! \param[in] source ID of source vertex1
   //! \param[in] destination ID of destination vertex (default is -1 for SSSP)
   //! \retval sp Shortest path and distances
   ShortestPath dijkstra_priority_queue(graph::vertex_t source,
@@ -128,6 +135,9 @@ class Graph {
   // adjacency list with iteration over each edge
   std::unordered_map<graph::vertex_t, std::vector<std::shared_ptr<Edge>>>
       vertex_edges_;
+  // adjacency list with iteration over each edge
+  std::unordered_map<graph::vertex_t, std::vector<std::shared_ptr<Edge>>>
+      reverse_vertex_edges_;
 };
 
 }  // namespace abm
