@@ -11,7 +11,7 @@ TEST_CASE("Graph class and shortest-path is checked", "[graph][sp][od]") {
   const double Tolerance = 1.E-7;
   // Path
   const std::string path = "../";
-
+  /*
   // Test directed graph
   SECTION("Test SSSP in directed graph") {
     // Set graph properties
@@ -147,6 +147,7 @@ TEST_CASE("Graph class and shortest-path is checked", "[graph][sp][od]") {
     // Check shortest path
     REQUIRE(distances.at(3) == Approx(5.6).epsilon(Tolerance));
   }
+  */
 
   SECTION("Test SSSP in directed graph from file") {
     // Set graph properties
@@ -162,13 +163,9 @@ TEST_CASE("Graph class and shortest-path is checked", "[graph][sp][od]") {
     // Run Dijkstra Priority Queue
     abm::graph::vertex_t source = 1020;
     abm::graph::vertex_t destination = 20;
-
-    auto start = std::chrono::system_clock::now();
     auto sp = graph->dijkstra_priority_queue(source, destination);
-    auto end = std::chrono::system_clock::now();
 
-    std::chrono::duration<double> elapsed_seconds = end - start;
-    std::cout << "Dijkstra: " << elapsed_seconds.count() << "s\n";
+    /*
 
     // Get distances
     auto distances = sp.distances;
@@ -177,6 +174,18 @@ TEST_CASE("Graph class and shortest-path is checked", "[graph][sp][od]") {
     REQUIRE(distances.size() == graph->nvertices());
     // Check shortest path
     REQUIRE(distances.at(20) == Approx(12409.660000000002).epsilon(Tolerance));
+    */
+    SECTION("Bidirectional dijkstra") {
+
+      auto start = std::chrono::system_clock::now();
+      auto sp = graph->bidirectional_dijkstra(source, destination);
+      auto end = std::chrono::system_clock::now();
+
+      REQUIRE(sp.size() == 150);
+
+      std::chrono::duration<double> elapsed_seconds = end - start;
+      std::cout << "Bidirectional Dijkstra: " << elapsed_seconds.count() << "s\n";
+    }
 
     SECTION("Dijkstra") {
 
@@ -189,19 +198,7 @@ TEST_CASE("Graph class and shortest-path is checked", "[graph][sp][od]") {
       std::chrono::duration<double> elapsed_seconds = end - start;
       std::cout << "Dijkstra: " << elapsed_seconds.count() << "s\n";
     }
-    
-    SECTION("Bidirectional dijkstra") {
-
-      auto start = std::chrono::system_clock::now();
-      auto sp = graph->bidirectional_dijkstra(source, destination);
-      auto end = std::chrono::system_clock::now();
-
-      REQUIRE(sp.size() == 150);
-
-      std::chrono::duration<double> elapsed_seconds = end - start;
-      std::cout << "Bidirectional Dijkstra: " << elapsed_seconds.count() << "s\n";
-    }
-    
+    /*
     SECTION("Test non-existant file") {
       // Create graph object
       auto graph = std::make_unique<abm::Graph>(directed);
@@ -210,5 +207,6 @@ TEST_CASE("Graph class and shortest-path is checked", "[graph][sp][od]") {
       // Read file should fail
       REQUIRE(graph->read_graph_matrix_market(filename) == false);
     }
+    */
   }
 }

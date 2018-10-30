@@ -18,16 +18,17 @@ inline void abm::Graph::add_edge(abm::graph::vertex_t vertex1,
   vertex1_edges.emplace_back(edge);
   vertex_edges_[vertex1] =
       std::vector<std::shared_ptr<Graph::Edge>>(vertex1_edges);
+
+  auto rvertex2_edges = reverse_vertex_edges_[vertex2];
+  rvertex2_edges.emplace_back(edge);
   reverse_vertex_edges_[vertex2] =
-      std::vector<std::shared_ptr<Graph::Edge>>(vertex1_edges);
+      std::vector<std::shared_ptr<Graph::Edge>>(rvertex2_edges);
 
   if (!this->directed_) {
     // Vertex 2
     auto vertex2_edges = vertex_edges_[vertex2];
     vertex2_edges.emplace_back(edge);
     vertex_edges_[vertex2] =
-        std::vector<std::shared_ptr<Graph::Edge>>(vertex2_edges);
-    reverse_vertex_edges_[vertex1] =
         std::vector<std::shared_ptr<Graph::Edge>>(vertex2_edges);
   }
 }
@@ -153,9 +154,12 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Graph::dijkstra(
   priority_queue.push(std::make_pair(0., source));
   distances.at(source) = 0.;
 
+  unsigned i = 0;
+  
   // Looping till priority queue becomes empty (or all
   // distances are not finalized)
   while (!priority_queue.empty()) {
+    ++i;
     // {min_weight, vertex} sorted based on weights (distance)
     abm::graph::vertex_t u = priority_queue.top().second;
     priority_queue.pop();
@@ -183,6 +187,8 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Graph::dijkstra(
     }
   }
 
+  std::cout << "Niters: " << i << "\n";
+    
   std::vector<abm::graph::vertex_t> path;
   path.emplace_back(destination);
   // Iterate until source has been reached
@@ -385,28 +391,77 @@ std::vector<std::array<abm::graph::vertex_t, 2>>
       decltype(compare)>
       priority_queue(compare);
 
+  // Create a priority queue to store weights and vertices
+  std::priority_queue<
+      std::pair<abm::graph::weight_t, abm::graph::vertex_t>,
+      std::vector<std::pair<abm::graph::weight_t, abm::graph::vertex_t>>,
+      decltype(compare)>
+      reverse_priority_queue(compare);
+
   // Create a vector for distances and initialize all to max
   std::vector<graph::weight_t> distances;
   distances.resize(this->nvertices_,
+                   std::numeric_limits<abm::graph::weight_t>::max());
+
+  // Create a vector for distances and initialize all to max
+  std::vector<graph::weight_t> reverse_distances;
+  reverse_distances.resize(this->nvertices_,
                    std::numeric_limits<abm::graph::weight_t>::max());
 
   // Parent array to store shortest path tree
   std::vector<graph::vertex_t> parent;
   parent.resize(this->nvertices_, -1);
 
+  // Reverse parent array to store shortest path tree
+  std::vector<graph::vertex_t> reverse_parent;
+  reverse_parent.resize(this->nvertices_, -1);
+
   // Insert source itself in priority queue & initialize its distance as 0.
   priority_queue.push(std::make_pair(0., source));
   distances.at(source) = 0.;
 
+  // Insert source itself in priority queue & initialize its distance as 0.
+  reverse_priority_queue.push(std::make_pair(0., destination));
+  reverse_distances.at(destination) = 0.;
+
+  std::vector<graph::vertex_t> nodes, reverse_nodes, intersection;
+ 
   // Looping till priority queue becomes empty (or all
   // distances are not finalized)
-  while (!priority_queue.empty()) {
+  unsigned i = 0;
+
+  double mu = std::numeric_limits<double>::max();
+  
+  while (!priority_queue.empty() && !reverse_priority_queue.empty()) {
+    ++i;
+    
     // {min_weight, vertex} sorted based on weights (distance)
     abm::graph::vertex_t u = priority_queue.top().second;
+    abm::graph::weight_t w1 = priority_queue.top().first;
     priority_queue.pop();
+
+    // {min_weight, vertex} sorted based on weights (distance)
+    abm::graph::vertex_t v = reverse_priority_queue.top().second;
+    abm::graph::weight_t w2 = reverse_priority_queue.top().first;
+    reverse_priority_queue.pop();
+
+    nodes.emplace_back(u);
+    reverse_nodes.emplace_back(v);
+    std::set_intersection(nodes.begin(), nodes.end(), reverse_nodes.begin(),
+                          reverse_nodes.end(),
+                          std::back_inserter(intersection));
+
+    if (intersection.size() > 0) {
+      for (auto i : intersection) {
+        if (distances.at(i) + reverse_distances.at(i) < mu)
+          mu = distances.at(i) + reverse_distances.at(i);
+        if (w1+w2 > mu) break;
+      }
+    }
 
     // Break if destination is reached
     if (u == destination) break;
+    if (v == source) break;
 
     // Get all adjacent vertices of a vertex
     for (const auto& edge : vertex_edges_[u]) {
@@ -426,7 +481,29 @@ std::vector<std::array<abm::graph::vertex_t, 2>>
         priority_queue.push(std::make_pair(distance_u, neighbour));
       }
     }
+    // Get all adjacent vertices of a vertex
+    for (const auto& edge : reverse_vertex_edges_[v]) {
+      // Get vertex label and weight of neighbours of v.
+      const abm::graph::vertex_t neighbour = edge->first.first;
+      const abm::graph::weight_t weight = edge->second;
+      
+      // Distance from source to neighbour
+      // distance_v = distance to current node + weight of edge v to
+      // neighbour
+      const abm::graph::weight_t distance_v = reverse_distances.at(v) + weight;
+
+      // If there is shorted path to neighbour vertex through v.
+      if (reverse_distances.at(neighbour) > distance_v) {
+        reverse_parent[neighbour] = u;
+        // Update distance of the vertex
+        reverse_distances.at(neighbour) = distance_v;
+        reverse_priority_queue.push(std::make_pair(distance_v, neighbour));
+      }
+    }
+
   }
+
+  std::cout << "BD: Niters: " << i << "\t" << intersection[0] << "\n";
 
   std::vector<abm::graph::vertex_t> path;
   path.emplace_back(destination);
@@ -449,7 +526,6 @@ std::vector<std::array<abm::graph::vertex_t, 2>>
             static_cast<abm::graph::vertex_t>(*itr),
             static_cast<abm::graph::vertex_t>(*nitr)};
         route_edges.emplace_back(edges);
-        // std::cout << "route: " << *itr << "\t" << *nitr << "\n";
       }
     }
   }
