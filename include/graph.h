@@ -10,8 +10,9 @@
 #include <queue>
 #include <sstream>
 #include <tuple>
-#include <unordered_map>
 #include <vector>
+
+#include <tsl/robin_map.h>
 
 #include "config.h"
 
@@ -105,14 +106,6 @@ class Graph {
   //! \retval sp Shortest path and distances
   ShortestPath dijkstra_priority_queue(graph::vertex_t source,
                                        graph::vertex_t destination = -1);
-
-  //! Compute the shortest path using priority queue
-  //! \param[in] source ID of source vertex1
-  //! \param[in] destinations IDs of destination vertex
-  //! \retval sp Shortest path and distances
-  ShortestPath dijkstra_priority_queue(
-      graph::vertex_t source, const std::vector<graph::vertex_t>& destinations);
-
  private:
   //! Assign number of vertices
   //! \param[in] nvertices Number of vertices in graph
@@ -126,7 +119,7 @@ class Graph {
   std::map<std::tuple<graph::vertex_t, graph::vertex_t>, std::shared_ptr<Edge>>
       edges_;
   // adjacency list with iteration over each edge
-  std::unordered_map<graph::vertex_t, std::vector<std::shared_ptr<Edge>>>
+  tsl::robin_map<graph::vertex_t, std::vector<std::shared_ptr<Edge>>>
       vertex_edges_;
 };
 
