@@ -13,6 +13,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "tsl/robin_map.h"
+
 #include "config.h"
 
 namespace abm {
@@ -126,7 +128,7 @@ class Graph {
   std::map<std::tuple<graph::vertex_t, graph::vertex_t>, std::shared_ptr<Edge>>
       edges_;
   // adjacency list with iteration over each edge
-  std::unordered_map<graph::vertex_t, std::vector<std::shared_ptr<Edge>>>
+  tsl::robin_map<graph::vertex_t, std::vector<std::shared_ptr<Edge>>>
       vertex_edges_;
 };
 
