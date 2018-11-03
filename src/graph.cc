@@ -278,3 +278,82 @@ abm::ShortestPath abm::Graph::dijkstra_priority_queue(
   }
   return sp;
 }
+
+// Dijktra shortest paths from src to all other vertices
+abm::ShortestPath abm::Graph::dijkstra_priority_queue(
+    abm::graph::vertex_t source,
+    const std::vector<abm::graph::vertex_t>& destinations) {
+
+  // Using lambda to compare elements.
+  auto compare =
+      [](std::pair<abm::graph::weight_t, abm::graph::vertex_t> left,
+         std::pair<abm::graph::weight_t, abm::graph::vertex_t> right) {
+        return left.first > right.first;
+      };
+
+  // Create a priority queue to store weights and vertices
+  std::priority_queue<
+      std::pair<abm::graph::weight_t, abm::graph::vertex_t>,
+      std::vector<std::pair<abm::graph::weight_t, abm::graph::vertex_t>>,
+      decltype(compare)>
+      priority_queue(compare);
+
+  // Check if all destinations have been reached, set all to false
+  std::unordered_map<abm::graph::vertex_t, bool> sp_destinations;
+  for (const auto& v : destinations) sp_destinations.insert({v, false});
+
+  // Create a shortest path object.
+  ShortestPath sp;
+  // Create a vector for distances and initialize all to max
+  sp.distances.clear();
+  sp.distances.resize(nvertices_,
+                      std::numeric_limits<abm::graph::weight_t>::max());
+
+  // Parent array to store shortest path tree
+  sp.parent.clear();
+  sp.parent.resize(nvertices_, -1);
+
+  // Insert source itself in priority queue and initialize its distance as
+  // 0.
+  priority_queue.push(std::make_pair(0., source));
+  sp.distances.at(source) = 0.;
+
+  // Looping till priority queue becomes empty (or all
+  // distances are not finalized)
+  while (!priority_queue.empty()) {
+    // {min_weight, vertex} sorted based on weights (distance)
+    abm::graph::vertex_t u = priority_queue.top().second;
+    priority_queue.pop();
+
+    // Set when a current destination is reached
+    auto itr = sp_destinations.find(u);
+    if (itr != sp_destinations.end()) itr->second = true;
+    // Break if all destinations are reached
+    if (std::all_of(
+            sp_destinations.begin(), sp_destinations.end(),
+            [&](std::pair<abm::graph::vertex_t, bool> const& destination) {
+              return destination.second;
+            }))
+      break;
+
+    // Get all adjacent vertices of a vertex
+    for (const auto& edge : vertex_edges_[u]) {
+      // Get vertex label and weight of neighbours of u.
+      const abm::graph::vertex_t neighbour = edge->first.second;
+      const abm::graph::weight_t weight = edge->second;
+
+      // Distance from source to neighbour
+      // distance_u = distance to current node + weight of edge u to
+      // neighbour
+      const abm::graph::weight_t distance_u = sp.distances.at(u) + weight;
+      // If there is shorted path to neighbour vertex through u.
+      if (sp.distances.at(neighbour) > distance_u) {
+        sp.parent.at(neighbour) = u;
+        // Update distance of the vertex
+        sp.distances.at(neighbour) = distance_u;
+        priority_queue.push(std::make_pair(distance_u, neighbour));
+      }
+    }
+  }
+  return sp;
+}
