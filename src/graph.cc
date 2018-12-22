@@ -176,18 +176,16 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Graph::dijkstra(
       // Distance from source to neighbour
       // distance_u = distance to current node + weight of edge u to
       // neighbour
-      const abm::graph::weight_t distance_u =
-          (distances.find(u) != distances.end()
-               ? distances.at(u)
-               : std::numeric_limits<abm::graph::weight_t>::max()) +
-          weight;
-      // If there is shorted path to neighbour vertex through u.
-      if (distances.find(neighbour) != distances.end() &&
-          distances.at(neighbour) > distance_u) {
-        parent[neighbour] = u;
-        // Update distance of the vertex
-        distances.at(neighbour) = distance_u;
-        priority_queue.push(std::make_pair(distance_u, neighbour));
+      if (distances.find(u) != distances.end()) {
+        const abm::graph::weight_t distance_u = distances.at(u) + weight;
+        // If there is shorted path to neighbour vertex through u.
+        if (distances.find(neighbour) != distances.end() &&
+            distances.at(neighbour) > distance_u) {
+          parent[neighbour] = u;
+          // Update distance of the vertex
+          distances.at(neighbour) = distance_u;
+          priority_queue.push(std::make_pair(distance_u, neighbour));
+        }
       }
     }
   }
