@@ -115,9 +115,6 @@ class Graph {
   ShortestPath dijkstra_priority_queue(
       graph::vertex_t source, const std::vector<graph::vertex_t>& destinations);
 
-  //! Find or add global vertex
-  inline abm::graph::vertex_t find_or_add_global_vertex(abm::graph::vertex_t vertex);
-
  private:
   //! Assign number of vertices
   //! \param[in] nvertices Number of vertices in graph
@@ -133,9 +130,6 @@ class Graph {
   // adjacency list with iteration over each edge
   tsl::robin_map<graph::vertex_t, std::vector<std::shared_ptr<Edge>>>
       vertex_edges_;
-  // Local to global mapping
-  tsl::robin_map<graph::vertex_t, graph::vertex_t> global_local_vertices_;
-  tsl::robin_map<graph::vertex_t, graph::vertex_t> local_global_vertices_;
   // Global edges
   std::map<std::tuple<graph::vertex_t, graph::vertex_t>, graph::vertex_t>
       edge_ids_;

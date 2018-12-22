@@ -1,26 +1,9 @@
 #include "graph.h"
 
-//! Find or add global vertex
-inline abm::graph::vertex_t abm::Graph::find_or_add_global_vertex(abm::graph::vertex_t vertex) {
-  // Search if global vertex id is found
-  auto vertex_itr = global_local_vertices_.find(vertex);
-  if (vertex_itr != global_local_vertices_.end())
-    return vertex_itr->second;
-  else {
-    abm::graph::vertex_t local_vertex = global_local_vertices_.size();
-    global_local_vertices_[vertex] = local_vertex;
-    local_global_vertices_[local_vertex] = vertex;
-    return local_vertex;
-  }
-}
-
 // Add edge
-inline void abm::Graph::add_edge(abm::graph::vertex_t v1,
-                                 abm::graph::vertex_t v2,
+inline void abm::Graph::add_edge(abm::graph::vertex_t vertex1,
+                                 abm::graph::vertex_t vertex2,
                                  abm::graph::weight_t weight = 1) {
-
-  abm::graph::vertex_t vertex1 = find_or_add_global_vertex(v1);
-  abm::graph::vertex_t vertex2 = find_or_add_global_vertex(v2);
 
   if (!this->directed_)
     if (vertex1 > vertex2) std::swap(vertex1, vertex2);
@@ -151,13 +134,24 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Graph::dijkstra(
       priority_queue(compare);
 
   // Create a vector for distances and initialize all to max
-  std::vector<graph::weight_t> distances;
-  distances.resize(this->nvertices_,
-                   std::numeric_limits<abm::graph::weight_t>::max());
+  tsl::robin_map<graph::vertex_t, double> distances;
 
   // Parent array to store shortest path tree
-  std::vector<graph::vertex_t> parent;
-  parent.resize(this->nvertices_, -1);
+  tsl::robin_map<graph::vertex_t, graph::vertex_t> parent;
+
+  for (auto vertex_edge : vertex_edges_) {
+    distances.insert(std::pair<graph::vertex_t, double>(
+        vertex_edge.first, std::numeric_limits<abm::graph::weight_t>::max()));
+    parent.insert(std::pair<graph::vertex_t, double>(vertex_edge.first, -1));
+  }
+
+  // Route edges
+  std::vector<std::array<abm::graph::vertex_t, 2>> route_edges;
+
+  // If source or destination is not found
+  if (distances.find(source) == distances.end() ||
+      distances.find(destination) == distances.end())
+    return route_edges;
 
   // Insert source itself in priority queue & initialize its distance as 0.
   priority_queue.push(std::make_pair(0., source));
@@ -182,7 +176,11 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Graph::dijkstra(
       // Distance from source to neighbour
       // distance_u = distance to current node + weight of edge u to
       // neighbour
-      const abm::graph::weight_t distance_u = distances.at(u) + weight;
+      const abm::graph::weight_t distance_u =
+          (distances.find(u) != distances.end()
+               ? distances.at(u)
+               : std::numeric_limits<abm::graph::weight_t>::max()) +
+          weight;
       // If there is shorted path to neighbour vertex through u.
       if (distances.at(neighbour) > distance_u) {
         parent[neighbour] = u;
@@ -204,7 +202,6 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Graph::dijkstra(
   path.emplace_back(source);
   // std::reverse(path.begin(), path.end());
 
-  std::vector<std::array<abm::graph::vertex_t, 2>> route_edges;
   if (path.size() > 2) {
     // Reverse to arrange from source to destination
     for (auto itr = path.end() - 1; itr != path.begin(); --itr) {
