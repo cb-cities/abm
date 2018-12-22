@@ -182,7 +182,8 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Graph::dijkstra(
                : std::numeric_limits<abm::graph::weight_t>::max()) +
           weight;
       // If there is shorted path to neighbour vertex through u.
-      if (distances.at(neighbour) > distance_u) {
+      if (distances.find(neighbour) != distances.end() &&
+          distances.at(neighbour) > distance_u) {
         parent[neighbour] = u;
         // Update distance of the vertex
         distances.at(neighbour) = distance_u;
