@@ -124,6 +124,8 @@ class Graph {
   bool directed_{false};
   // Number of graph vertices
   unsigned nvertices_{std::numeric_limits<unsigned>::max()};
+  // Max id of vertex
+  graph::vertex_t max_vertex_id_{std::numeric_limits<graph::vertex_t>::min()};
   // Edges
   std::map<std::tuple<graph::vertex_t, graph::vertex_t>, std::shared_ptr<Edge>>
       edges_;
