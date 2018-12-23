@@ -115,6 +115,13 @@ class Graph {
   std::vector<std::array<graph::vertex_t, 2>> dijkstra(
       graph::vertex_t source, graph::vertex_t destination);
 
+  //! Compute the shortest path using priority queue for OSM
+  //! \param[in] source ID of source vertex1
+  //! \param[in] destination ID of destination vertex
+  //! \retval route_edges Edges of the route from source to destination
+  std::vector<std::array<graph::vertex_t, 2>> dijkstra_map(
+      graph::vertex_t source, graph::vertex_t destination);
+
   //! Compute the shortest path using priority queue
   //! \param[in] source ID of source vertex1
   //! \param[in] destination ID of destination vertex (default is -1 for SSSP)
@@ -146,6 +153,8 @@ class Graph {
   // adjacency list with iteration over each edge
   tsl::robin_map<graph::vertex_t, std::vector<std::shared_ptr<Edge>>>
       vertex_edges_;
+  // Vertices and counts
+  tsl::robin_map<graph::vertex_t, unsigned> vertices_;
   // Global edges
   std::map<std::tuple<graph::vertex_t, graph::vertex_t>, graph::vertex_t>
       edge_ids_;

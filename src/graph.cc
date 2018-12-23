@@ -4,13 +4,23 @@
 inline void abm::Graph::add_edge(abm::graph::vertex_t vertex1,
                                  abm::graph::vertex_t vertex2,
                                  abm::graph::weight_t weight = 1) {
+  // Create a map of vertices
+  if (vertices_.find(vertex1) == vertices_.end())
+    vertices_[vertex1] = 1;
+  else
+    vertices_[vertex1] += 1;
 
-  if (!this->directed_)
-    if (vertex1 > vertex2) std::swap(vertex1, vertex2);
+  if (vertices_.find(vertex2) == vertices_.end())
+    vertices_[vertex2] = 1;
+  else
+    vertices_[vertex2] += 1;
 
   // Set max vertex ids
   if (vertex1 > max_vertex_id_) max_vertex_id_ = vertex1;
   if (vertex2 > max_vertex_id_) max_vertex_id_ = vertex2;
+
+  if (!this->directed_)
+    if (vertex1 > vertex2) std::swap(vertex1, vertex2);
 
   // Create an edge
   auto edge = std::make_shared<Graph::Edge>(
@@ -38,12 +48,23 @@ inline void abm::Graph::add_edge_osm(abm::graph::vertex_t vertex1,
                                      abm::graph::vertex_t edgeid,
                                      abm::graph::weight_t weight = 1) {
 
-  if (!this->directed_)
-    if (vertex1 > vertex2) std::swap(vertex1, vertex2);
+  // Create a map of vertices
+  if (vertices_.find(vertex1) == vertices_.end())
+    vertices_[vertex1] = 1;
+  else
+    vertices_[vertex1] += 1;
+
+  if (vertices_.find(vertex2) == vertices_.end())
+    vertices_[vertex2] = 1;
+  else
+    vertices_[vertex2] += 1;
 
   // Set max vertex ids
   if (vertex1 > max_vertex_id_) max_vertex_id_ = vertex1;
   if (vertex2 > max_vertex_id_) max_vertex_id_ = vertex2;
+
+  if (!this->directed_)
+    if (vertex1 > vertex2) std::swap(vertex1, vertex2);
 
   // Create an edge
   auto edge = std::make_shared<Graph::Edge>(
@@ -255,6 +276,104 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Graph::dijkstra(
   // std::reverse(path.begin(), path.end());
 
   std::vector<std::array<abm::graph::vertex_t, 2>> route_edges;
+  if (path.size() > 2) {
+    // Reverse to arrange from source to destination
+    for (auto itr = path.end() - 1; itr != path.begin(); --itr) {
+      auto nitr = itr - 1;
+      if (itr != path.begin()) {
+        std::array<abm::graph::vertex_t, 2> edges{
+            static_cast<abm::graph::vertex_t>(*itr),
+            static_cast<abm::graph::vertex_t>(*nitr)};
+        route_edges.emplace_back(edges);
+        // std::cout << "route: " << *itr << "\t" << *nitr << "\n";
+      }
+    }
+  }
+  return route_edges;
+}
+
+// Dijktra shortest paths from src to a vertex
+std::vector<std::array<abm::graph::vertex_t, 2>> abm::Graph::dijkstra_map(
+    abm::graph::vertex_t source, abm::graph::vertex_t destination) {
+
+  // Using lambda to compare elements.
+  auto compare =
+      [](std::pair<abm::graph::weight_t, abm::graph::vertex_t> left,
+         std::pair<abm::graph::weight_t, abm::graph::vertex_t> right) {
+        return left.first > right.first;
+      };
+
+  // Create a priority queue to store weights and vertices
+  std::priority_queue<
+      std::pair<abm::graph::weight_t, abm::graph::vertex_t>,
+      std::vector<std::pair<abm::graph::weight_t, abm::graph::vertex_t>>,
+      decltype(compare)>
+      priority_queue(compare);
+
+  // Create a vector for distances and initialize all to max
+  tsl::robin_map<graph::vertex_t, graph::weight_t> distances;
+
+  // Parent array to store shortest path tree
+  tsl::robin_map<graph::vertex_t, graph::vertex_t> parent;
+
+  for (auto vertex : vertices_) {
+    distances[vertex.first] = std::numeric_limits<abm::graph::weight_t>::max();
+    parent[vertex.first] = -1;
+  }
+
+  std::vector<std::array<abm::graph::vertex_t, 2>> route_edges;
+  if (vertices_.find(source) == vertices_.end() ||
+      vertices_.find(destination) == vertices_.end())
+    return route_edges;
+
+  // Insert source itself in priority queue & initialize its distance as 0.
+  priority_queue.push(std::make_pair(0., source));
+  distances[source] = 0.;
+
+  // Looping till priority queue becomes empty (or all
+  // distances are not finalized)
+  while (!priority_queue.empty()) {
+    // {min_weight, vertex} sorted based on weights (distance)
+    abm::graph::vertex_t u = priority_queue.top().second;
+    priority_queue.pop();
+
+    // Break if destination is reached
+    if (u == destination) break;
+
+    // Get all adjacent vertices of a vertex
+    for (const auto& edge : vertex_edges_[u]) {
+      // Get vertex label and weight of neighbours of u.
+      const abm::graph::vertex_t neighbour = edge->first.second;
+      const abm::graph::weight_t weight = edge->second;
+
+      if (distances.find(u) != distances.end() &&
+          distances.find(neighbour) != distances.end()) {
+        // Distance from source to neighbour
+        // distance_u = distance to current node + weight of edge u to
+        // neighbour
+        const abm::graph::weight_t distance_u = distances.at(u) + weight;
+        // If there is shorted path to neighbour vertex through u.
+        if (distances.at(neighbour) > distance_u) {
+          parent[neighbour] = u;
+          // Update distance of the vertex
+          distances.at(neighbour) = distance_u;
+          priority_queue.push(std::make_pair(distance_u, neighbour));
+        }
+      }
+    }
+  }
+
+  std::vector<abm::graph::vertex_t> path;
+  path.emplace_back(destination);
+  // Iterate until source has been reached
+  while (destination != source && destination != -1) {
+    destination = parent.at(destination);
+    if (destination != source && destination != -1)
+      path.emplace_back(destination);
+  }
+  path.emplace_back(source);
+  // std::reverse(path.begin(), path.end());
+
   if (path.size() > 2) {
     // Reverse to arrange from source to destination
     for (auto itr = path.end() - 1; itr != path.begin(); --itr) {

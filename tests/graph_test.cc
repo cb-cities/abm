@@ -193,7 +193,7 @@ TEST_CASE("Graph class and shortest-path is checked", "[graph][sp][od]") {
     // Run Dijkstra Priority Queue
     abm::graph::vertex_t source = 65358739;
     abm::graph::vertex_t destination = 2304626340;
-    // auto sp = graph->dijkstra(source, destination);
+    auto sp = graph->dijkstra_map(source, destination);
     /*
     // Get distances
     auto distances = sp.distances;
