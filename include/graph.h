@@ -2,6 +2,7 @@
 #define ABM_GRAPH_H_
 
 #include <algorithm>
+#include <array>
 #include <fstream>
 #include <iostream>
 #include <limits>

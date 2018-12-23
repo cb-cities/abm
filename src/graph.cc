@@ -16,8 +16,8 @@ inline void abm::Graph::add_edge(abm::graph::vertex_t vertex1,
     vertices_[vertex2] += 1;
 
   // Set max vertex ids
-  if (vertex1 > max_vertex_id_) max_vertex_id_ = vertex1;
-  if (vertex2 > max_vertex_id_) max_vertex_id_ = vertex2;
+  if (vertex1 > max_vertex_id_) max_vertex_id_ = vertex1 + 1;
+  if (vertex2 > max_vertex_id_) max_vertex_id_ = vertex2 + 1;
 
   if (!this->directed_)
     if (vertex1 > vertex2) std::swap(vertex1, vertex2);
@@ -223,12 +223,12 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Graph::dijkstra(
 
   // Create a vector for distances and initialize all to max
   std::vector<graph::weight_t> distances;
-  distances.resize((this->max_vertex_id_ + 1),
+  distances.resize(this->nvertices_,
                    std::numeric_limits<abm::graph::weight_t>::max());
 
   // Parent array to store shortest path tree
   std::vector<graph::vertex_t> parent;
-  parent.resize((this->max_vertex_id_ + 1), -1);
+  parent.resize(this->nvertices_, -1);
 
   // Insert source itself in priority queue & initialize its distance as 0.
   priority_queue.push(std::make_pair(0., source));
@@ -346,19 +346,16 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Graph::dijkstra_map(
       const abm::graph::vertex_t neighbour = edge->first.second;
       const abm::graph::weight_t weight = edge->second;
 
-      if (distances.find(u) != distances.end() &&
-          distances.find(neighbour) != distances.end()) {
-        // Distance from source to neighbour
-        // distance_u = distance to current node + weight of edge u to
-        // neighbour
-        const abm::graph::weight_t distance_u = distances.at(u) + weight;
-        // If there is shorted path to neighbour vertex through u.
-        if (distances.at(neighbour) > distance_u) {
-          parent[neighbour] = u;
-          // Update distance of the vertex
-          distances.at(neighbour) = distance_u;
-          priority_queue.push(std::make_pair(distance_u, neighbour));
-        }
+      // Distance from source to neighbour
+      // distance_u = distance to current node + weight of edge u to
+      // neighbour
+      const abm::graph::weight_t distance_u = distances.at(u) + weight;
+      // If there is shorted path to neighbour vertex through u.
+      if (distances.at(neighbour) > distance_u) {
+        parent[neighbour] = u;
+        // Update distance of the vertex
+        distances.at(neighbour) = distance_u;
+        priority_queue.push(std::make_pair(distance_u, neighbour));
       }
     }
   }
@@ -412,17 +409,17 @@ abm::ShortestPath abm::Graph::dijkstra_priority_queue(
   ShortestPath sp;
   // Create a vector for distances and initialize all to max
   sp.distances.clear();
-  sp.distances.resize((this->max_vertex_id_ + 1),
+  sp.distances.resize(this->nvertices_,
                       std::numeric_limits<abm::graph::weight_t>::max());
 
   // Create a vector for distances and initialize all to max
   std::vector<graph::weight_t> distances;
-  distances.resize((this->max_vertex_id_ + 1),
+  distances.resize(this->nvertices_,
                    std::numeric_limits<abm::graph::weight_t>::max());
 
   // Parent array to store shortest path tree
   sp.parent.clear();
-  sp.parent.resize((this->max_vertex_id_ + 1), -1);
+  sp.parent.resize(max_vertex_id_, -1);
 
   // Insert source itself in priority queue and initialize its distance as
   // 0.
@@ -497,12 +494,12 @@ abm::ShortestPath abm::Graph::dijkstra_priority_queue(
   ShortestPath sp;
   // Create a vector for distances and initialize all to max
   sp.distances.clear();
-  sp.distances.resize((this->max_vertex_id_ + 1),
+  sp.distances.resize(this->nvertices_,
                       std::numeric_limits<abm::graph::weight_t>::max());
 
   // Parent array to store shortest path tree
   sp.parent.clear();
-  sp.parent.resize((this->max_vertex_id_ + 1), -1);
+  sp.parent.resize(this->nvertices_, -1);
 
   // Insert source itself in priority queue and initialize its distance as
   // 0.

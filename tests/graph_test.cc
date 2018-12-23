@@ -202,8 +202,8 @@ TEST_CASE("Graph class and shortest-path is checked", "[graph][sp][od]") {
     REQUIRE(distances.size() == graph->nvertices());
     // Check shortest path
     REQUIRE(distances.at(3685177534) ==
-    Approx(12409.660000000002).epsilon(Tolerance));
-    */
+            Approx(12409.660000000002).epsilon(Tolerance));
+
     SECTION("Test non-existant file") {
       // Create graph object
       auto graph = std::make_unique<abm::Graph>(directed);
@@ -212,5 +212,6 @@ TEST_CASE("Graph class and shortest-path is checked", "[graph][sp][od]") {
       // Read file should fail
       REQUIRE(graph->read_osm_graph(filename) == false);
     }
+    */
   }
 }
