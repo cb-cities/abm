@@ -293,12 +293,17 @@ abm::ShortestPath abm::Graph::dijkstra_priority_queue(
   ShortestPath sp;
   // Create a vector for distances and initialize all to max
   sp.distances.clear();
-  sp.distances.resize(nvertices_,
+  sp.distances.resize((this->max_vertex_id_ + 1),
                       std::numeric_limits<abm::graph::weight_t>::max());
+
+  // Create a vector for distances and initialize all to max
+  std::vector<graph::weight_t> distances;
+  distances.resize((this->max_vertex_id_ + 1),
+                   std::numeric_limits<abm::graph::weight_t>::max());
 
   // Parent array to store shortest path tree
   sp.parent.clear();
-  sp.parent.resize(nvertices_, -1);
+  sp.parent.resize((this->max_vertex_id_ + 1), -1);
 
   // Insert source itself in priority queue and initialize its distance as
   // 0.
@@ -373,12 +378,12 @@ abm::ShortestPath abm::Graph::dijkstra_priority_queue(
   ShortestPath sp;
   // Create a vector for distances and initialize all to max
   sp.distances.clear();
-  sp.distances.resize(nvertices_,
+  sp.distances.resize((this->max_vertex_id_ + 1),
                       std::numeric_limits<abm::graph::weight_t>::max());
 
   // Parent array to store shortest path tree
   sp.parent.clear();
-  sp.parent.resize(nvertices_, -1);
+  sp.parent.resize((this->max_vertex_id_ + 1), -1);
 
   // Insert source itself in priority queue and initialize its distance as
   // 0.

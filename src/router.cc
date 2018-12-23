@@ -28,12 +28,12 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Router::compute_routes(
 #ifdef USE_MPI
   // Create MPI pair type
   MPI_Datatype pair_t;
-  MPI_Type_vector(2, 1, 1, MPI_LONG, &pair_t);
+  MPI_Type_vector(2, 1, 1, MPI_LONG_LONG_INT, &pair_t);
   MPI_Type_commit(&pair_t);
 
   // Calculate chunk size to split router
   int chunk_size = this->all_od_pairs_.size() / mpi_size;
-  MPI_Bcast(&chunk_size, 1, MPI_LONG, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&chunk_size, 1, MPI_LONG_LONG_INT, 0, MPI_COMM_WORLD);
   od_pairs.resize(chunk_size);
   // Send route chunks to different compute nodes
   MPI_Scatter(all_od_pairs_.data(), chunk_size, pair_t, od_pairs.data(),

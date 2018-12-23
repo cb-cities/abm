@@ -190,11 +190,11 @@ TEST_CASE("Graph class and shortest-path is checked", "[graph][sp][od]") {
     // Read file
     REQUIRE(graph->read_osm_graph(filename) == true);
 
-    /*
     // Run Dijkstra Priority Queue
-    abm::graph::vertex_t source = 53118749;
-    abm::graph::vertex_t destination = 3685177534;
-    auto sp = graph->dijkstra_priority_queue(source, destination);
+    abm::graph::vertex_t source = 65358739;
+    abm::graph::vertex_t destination = 2304626340;
+    // auto sp = graph->dijkstra(source, destination);
+    /*
     // Get distances
     auto distances = sp.distances;
 
@@ -203,7 +203,7 @@ TEST_CASE("Graph class and shortest-path is checked", "[graph][sp][od]") {
     // Check shortest path
     REQUIRE(distances.at(3685177534) ==
     Approx(12409.660000000002).epsilon(Tolerance));
-
+    */
     SECTION("Test non-existant file") {
       // Create graph object
       auto graph = std::make_unique<abm::Graph>(directed);
@@ -212,6 +212,5 @@ TEST_CASE("Graph class and shortest-path is checked", "[graph][sp][od]") {
       // Read file should fail
       REQUIRE(graph->read_osm_graph(filename) == false);
     }
-    */
   }
 }
