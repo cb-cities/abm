@@ -145,44 +145,24 @@ bool abm::Graph::read_graph_matrix_market(const std::string& filename) {
 bool abm::Graph::read_osm_graph(const std::string& filename) {
   bool status = true;
   try {
-    std::fstream file;
-    file.open(filename.c_str(), std::ios::in);
-    if (file.is_open() && file.good()) {
-      // Line
-      std::string line;
-      bool header = true;
-      double ignore;
-      abm::graph::vertex_t nvertices = 0;
-      while (std::getline(file, line)) {
-        std::istringstream istream(line);
-        abm::graph::vertex_t v1, v2, edgeid;
-        abm::graph::weight_t weight;
-        // ignore comment lines (# or !) or blank lines
-        if ((line.find('#') == std::string::npos) &&
-            (line.find('%') == std::string::npos) && (line != "")) {
-          if (header) {
-            // Ignore header
-            while (istream.good()) istream >> ignore;
-            header = false;
-          }
-          while (istream.good()) {
-            // Read vertices edges and weights
-            istream >> edgeid >> v1 >> v2 >> weight >> ignore >> ignore;
-            this->add_edge_osm(v1, v2, edgeid, weight);
-            ++nvertices;
-          }
-        }
-      }
-      this->assign_nvertices(nvertices);
-      std::cout << "Graph summary #edges: " << this->edges_.size()
-                << " #vertices: " << this->nvertices_ << "\n";
-    } else {
-      throw std::runtime_error("Input file not found");
+    io::CSVReader<4> in(filename);
+    in.read_header(io::ignore_extra_column, "uniqueid", "u", "v", "length");
+    abm::graph::vertex_t edgeid, v1, v2;
+    abm::graph::weight_t weight;
+    abm::graph::vertex_t nvertices = 0;
+    while (in.read_row(edgeid, v1, v2, weight)) {
+      this->add_edge_osm(v1, v2, edgeid, weight);
+      ++nvertices;
     }
+    this->assign_nvertices(nvertices);
+    std::cout << "Graph summary #edges: " << this->edges_.size()
+              << " #vertices: " << this->nvertices_ << "\n";
+
   } catch (std::exception& exception) {
-    std::cout << "Read osm file: " << exception.what() << "\n";
+    std::cout << "Read OSM file: " << exception.what() << "\n";
     status = false;
   }
+
   return status;
 }
 

@@ -13,6 +13,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "csv.h"
 #include "tsl/robin_map.h"
 
 #include "config.h"

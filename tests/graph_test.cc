@@ -179,4 +179,39 @@ TEST_CASE("Graph class and shortest-path is checked", "[graph][sp][od]") {
       REQUIRE(graph->read_graph_matrix_market(filename) == false);
     }
   }
+  SECTION("Test SSSP in directed graph from file") {
+    // Set graph properties
+    const bool directed = true;
+
+    // Create graph object
+    auto graph = std::make_unique<abm::Graph>(directed);
+    // Read MatrixMarket file
+    const std::string filename = path + "osm/edges.csv";
+    // Read file
+    REQUIRE(graph->read_osm_graph(filename) == true);
+
+    /*
+    // Run Dijkstra Priority Queue
+    abm::graph::vertex_t source = 53118749;
+    abm::graph::vertex_t destination = 3685177534;
+    auto sp = graph->dijkstra_priority_queue(source, destination);
+    // Get distances
+    auto distances = sp.distances;
+
+    // Check distances
+    REQUIRE(distances.size() == graph->nvertices());
+    // Check shortest path
+    REQUIRE(distances.at(3685177534) ==
+    Approx(12409.660000000002).epsilon(Tolerance));
+
+    SECTION("Test non-existant file") {
+      // Create graph object
+      auto graph = std::make_unique<abm::Graph>(directed);
+      // Read MatrixMarket file
+      const std::string filename = "osm/nofile.csv";
+      // Read file should fail
+      REQUIRE(graph->read_osm_graph(filename) == false);
+    }
+    */
+  }
 }

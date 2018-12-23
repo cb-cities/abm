@@ -6,8 +6,8 @@ bool abm::Router::read_od_pairs(const std::string& filename, int nagents) {
   try {
     io::CSVReader<2> in(filename);
     in.read_header(io::ignore_extra_column, "origin", "destination");
-    int v1, v2;
-    double weight;
+    abm::graph::vertex_t v1, v2;
+    abm::graph::weight_t weight;
     while (in.read_row(v1, v2)) {
       std::array<abm::graph::vertex_t, 2> od = {v1, v2};
       this->all_od_pairs_.emplace_back(od);
@@ -28,12 +28,12 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Router::compute_routes(
 #ifdef USE_MPI
   // Create MPI pair type
   MPI_Datatype pair_t;
-  MPI_Type_vector(2, 1, 1, MPI_INT, &pair_t);
+  MPI_Type_vector(2, 1, 1, MPI_LONG, &pair_t);
   MPI_Type_commit(&pair_t);
 
   // Calculate chunk size to split router
   int chunk_size = this->all_od_pairs_.size() / mpi_size;
-  MPI_Bcast(&chunk_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&chunk_size, 1, MPI_LONG, 0, MPI_COMM_WORLD);
   od_pairs.resize(chunk_size);
   // Send route chunks to different compute nodes
   MPI_Scatter(all_od_pairs_.data(), chunk_size, pair_t, od_pairs.data(),
