@@ -155,7 +155,7 @@ class Graph {
   tsl::robin_map<graph::vertex_t, std::vector<std::shared_ptr<Edge>>>
       vertex_edges_;
   // Vertices and counts
-  tsl::robin_map<graph::vertex_t, unsigned> vertices_;
+  tsl::robin_map<graph::vertex_t, graph::vertex_t> vertices_;
   // Global edges
   std::map<std::tuple<graph::vertex_t, graph::vertex_t>, graph::vertex_t>
       edge_ids_;

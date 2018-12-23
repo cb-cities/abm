@@ -6,14 +6,10 @@ inline void abm::Graph::add_edge(abm::graph::vertex_t vertex1,
                                  abm::graph::weight_t weight = 1) {
   // Create a map of vertices
   if (vertices_.find(vertex1) == vertices_.end())
-    vertices_[vertex1] = 1;
-  else
-    vertices_[vertex1] += 1;
+    vertices_[vertex1] = vertices_.size();
 
   if (vertices_.find(vertex2) == vertices_.end())
-    vertices_[vertex2] = 1;
-  else
-    vertices_[vertex2] += 1;
+    vertices_[vertex2] = vertices_.size();
 
   // Set max vertex ids
   if (vertex1 > max_vertex_id_) max_vertex_id_ = vertex1 + 1;
@@ -50,14 +46,10 @@ inline void abm::Graph::add_edge_osm(abm::graph::vertex_t vertex1,
 
   // Create a map of vertices
   if (vertices_.find(vertex1) == vertices_.end())
-    vertices_[vertex1] = 1;
-  else
-    vertices_[vertex1] += 1;
+    vertices_[vertex1] = vertices_.size();
 
   if (vertices_.find(vertex2) == vertices_.end())
-    vertices_[vertex2] = 1;
-  else
-    vertices_[vertex2] += 1;
+    vertices_[vertex2] = vertices_.size();
 
   // Set max vertex ids
   if (vertex1 > max_vertex_id_) max_vertex_id_ = vertex1;
@@ -141,7 +133,7 @@ bool abm::Graph::read_graph_matrix_market(const std::string& filename) {
             istream >> nvertices;
             while (istream.good()) istream >> ignore;
             header = false;
-            this->assign_nvertices(nvertices + 1);
+            this->assign_nvertices(nvertices);
           }
           while (istream.good()) {
             // Read vertices edges and weights
@@ -311,15 +303,12 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Graph::dijkstra_map(
       priority_queue(compare);
 
   // Create a vector for distances and initialize all to max
-  tsl::robin_map<graph::vertex_t, graph::weight_t> distances;
-
+  std::vector<graph::weight_t> distances;
+  distances.resize(this->vertices_.size(),
+                   std::numeric_limits<abm::graph::weight_t>::max());
   // Parent array to store shortest path tree
-  tsl::robin_map<graph::vertex_t, graph::vertex_t> parent;
-
-  for (auto vertex : vertices_) {
-    distances[vertex.first] = std::numeric_limits<abm::graph::weight_t>::max();
-    parent[vertex.first] = -1;
-  }
+  std::vector<graph::vertex_t> parent;
+  parent.resize(this->vertices_.size(), -1);
 
   std::vector<std::array<abm::graph::vertex_t, 2>> route_edges;
   if (vertices_.find(source) == vertices_.end() ||
@@ -328,7 +317,7 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Graph::dijkstra_map(
 
   // Insert source itself in priority queue & initialize its distance as 0.
   priority_queue.push(std::make_pair(0., source));
-  distances[source] = 0.;
+  distances[vertices_.at(source)] = 0.;
 
   // Looping till priority queue becomes empty (or all
   // distances are not finalized)
@@ -349,12 +338,15 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Graph::dijkstra_map(
       // Distance from source to neighbour
       // distance_u = distance to current node + weight of edge u to
       // neighbour
-      const abm::graph::weight_t distance_u = distances.at(u) + weight;
+      const abm::graph::vertex_t uidx = vertices_.at(u);
+      const abm::graph::vertex_t nidx = vertices_.at(neighbour);
+
+      const abm::graph::weight_t distance_u = distances.at(uidx) + weight;
       // If there is shorted path to neighbour vertex through u.
-      if (distances.at(neighbour) > distance_u) {
-        parent[neighbour] = u;
+      if (distances.at(nidx) > distance_u) {
+        parent[nidx] = u;
         // Update distance of the vertex
-        distances.at(neighbour) = distance_u;
+        distances.at(nidx) = distance_u;
         priority_queue.push(std::make_pair(distance_u, neighbour));
       }
     }
@@ -364,7 +356,7 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Graph::dijkstra_map(
   path.emplace_back(destination);
   // Iterate until source has been reached
   while (destination != source && destination != -1) {
-    destination = parent.at(destination);
+    destination = parent.at(vertices_.at(destination));
     if (destination != source && destination != -1)
       path.emplace_back(destination);
   }
