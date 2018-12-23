@@ -32,6 +32,41 @@ inline void abm::Graph::add_edge(abm::graph::vertex_t vertex1,
   }
 }
 
+// Add edge
+inline void abm::Graph::add_edge_osm(abm::graph::vertex_t vertex1,
+                                     abm::graph::vertex_t vertex2,
+                                     abm::graph::vertex_t edgeid,
+                                     abm::graph::weight_t weight = 1) {
+
+  if (!this->directed_)
+    if (vertex1 > vertex2) std::swap(vertex1, vertex2);
+
+  // Set max vertex ids
+  if (vertex1 > max_vertex_id_) max_vertex_id_ = vertex1;
+  if (vertex2 > max_vertex_id_) max_vertex_id_ = vertex2;
+
+  // Create an edge
+  auto edge = std::make_shared<Graph::Edge>(
+      std::make_pair(std::make_pair(vertex1, vertex2), weight));
+  edges_[std::make_tuple(vertex1, vertex2)] = edge;
+
+  edge_ids_[std::make_tuple(vertex1, vertex2)] = edgeid;
+
+  // Vertex 1
+  auto vertex1_edges = vertex_edges_[vertex1];
+  vertex1_edges.emplace_back(edge);
+  vertex_edges_[vertex1] =
+      std::vector<std::shared_ptr<Graph::Edge>>(vertex1_edges);
+
+  if (!this->directed_) {
+    // Vertex 2
+    auto vertex2_edges = vertex_edges_[vertex2];
+    vertex2_edges.emplace_back(edge);
+    vertex_edges_[vertex2] =
+        std::vector<std::shared_ptr<Graph::Edge>>(vertex2_edges);
+  }
+}
+
 // Update edge
 void abm::Graph::update_edge(abm::graph::vertex_t vertex1,
                              abm::graph::vertex_t vertex2,
@@ -48,6 +83,9 @@ void abm::Graph::remove_edge(abm::graph::vertex_t vertex1,
   auto edge = edges_[std::make_tuple(vertex1, vertex2)];
   edges_.erase(edges_.find(std::make_tuple(vertex1, vertex2)));
 
+  if (edge_ids_.size() > 0)
+    edge_ids_.erase(edge_ids_.find(std::make_tuple(vertex1, vertex2)));
+
   auto v1edge = vertex_edges_.at(vertex1);
   auto v2edge = vertex_edges_.at(vertex2);
 
@@ -60,6 +98,51 @@ void abm::Graph::remove_edge(abm::graph::vertex_t vertex1,
 
 // Read MatrixMarket graph file format
 bool abm::Graph::read_graph_matrix_market(const std::string& filename) {
+  bool status = true;
+  try {
+    std::fstream file;
+    file.open(filename.c_str(), std::ios::in);
+    if (file.is_open() && file.good()) {
+      // Line
+      std::string line;
+      bool header = true;
+      double ignore;
+      while (std::getline(file, line)) {
+        std::istringstream istream(line);
+        int v1, v2;
+        double weight;
+        unsigned nvertices;
+        // ignore comment lines (# or !) or blank lines
+        if ((line.find('#') == std::string::npos) &&
+            (line.find('%') == std::string::npos) && (line != "")) {
+          if (header) {
+            // Ignore header
+            istream >> nvertices;
+            while (istream.good()) istream >> ignore;
+            header = false;
+            this->assign_nvertices(nvertices + 1);
+          }
+          while (istream.good()) {
+            // Read vertices edges and weights
+            istream >> v1 >> v2 >> weight;
+            this->add_edge(v1, v2, weight);
+          }
+        }
+      }
+      std::cout << "Graph summary #edges: " << this->edges_.size()
+                << " #vertices: " << this->nvertices_ << "\n";
+    } else {
+      throw std::runtime_error("Input file not found");
+    }
+  } catch (std::exception& exception) {
+    std::cout << "Read matrix market file: " << exception.what() << "\n";
+    status = false;
+  }
+  return status;
+}
+
+// Read MatrixMarket graph file format
+bool abm::Graph::read_osm_graph(const std::string& filename) {
   bool status = true;
   try {
     std::fstream file;

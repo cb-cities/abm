@@ -74,6 +74,14 @@ class Graph {
   void add_edge(graph::vertex_t vertex1, graph::vertex_t vertex2,
                 graph::weight_t weight);
 
+  //! Add edge to graph from OSM
+  //! \param[in] vertex1 ID of vertex1
+  //! \param[in] vertex2 ID of vertex2
+  //! \param[in] edge_id ID of edge
+  //! \param[in] weight Weight of edge connecting vertex 1 and 2
+  void add_edge_osm(graph::vertex_t vertex1, graph::vertex_t vertex2,
+                    graph::vertex_t edge_id, graph::weight_t weight);
+
   //! Update edge of a graph
   //! \param[in] vertex1 ID of vertex1
   //! \param[in] vertex2 ID of vertex2
@@ -93,6 +101,11 @@ class Graph {
   //! \param[in] filename Name of input MatrixMarket file
   //! \retval status File read status
   bool read_graph_matrix_market(const std::string& filename);
+
+  //! Read OSM graph file format
+  //! \param[in] filename Name of input MatrixMarket file
+  //! \retval status File read status
+  bool read_osm_graph(const std::string& filename);
 
   //! Compute the shortest path using priority queue
   //! \param[in] source ID of source vertex1
