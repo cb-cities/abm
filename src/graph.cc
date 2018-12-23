@@ -152,35 +152,35 @@ bool abm::Graph::read_osm_graph(const std::string& filename) {
       std::string line;
       bool header = true;
       double ignore;
+      abm::graph::vertex_t nvertices = 0;
       while (std::getline(file, line)) {
         std::istringstream istream(line);
-        int v1, v2;
-        double weight;
-        unsigned nvertices;
+        abm::graph::vertex_t v1, v2, edgeid;
+        abm::graph::weight_t weight;
         // ignore comment lines (# or !) or blank lines
         if ((line.find('#') == std::string::npos) &&
             (line.find('%') == std::string::npos) && (line != "")) {
           if (header) {
             // Ignore header
-            istream >> nvertices;
             while (istream.good()) istream >> ignore;
             header = false;
-            this->assign_nvertices(nvertices + 1);
           }
           while (istream.good()) {
             // Read vertices edges and weights
-            istream >> v1 >> v2 >> weight;
-            this->add_edge(v1, v2, weight);
+            istream >> edgeid >> v1 >> v2 >> weight >> ignore >> ignore;
+            this->add_edge_osm(v1, v2, edgeid, weight);
+            ++nvertices;
           }
         }
       }
+      this->assign_nvertices(nvertices);
       std::cout << "Graph summary #edges: " << this->edges_.size()
                 << " #vertices: " << this->nvertices_ << "\n";
     } else {
       throw std::runtime_error("Input file not found");
     }
   } catch (std::exception& exception) {
-    std::cout << "Read matrix market file: " << exception.what() << "\n";
+    std::cout << "Read osm file: " << exception.what() << "\n";
     status = false;
   }
   return status;
