@@ -22,6 +22,9 @@ inline void abm::Graph::add_edge(abm::graph::vertex_t vertex1,
   auto edge = std::make_shared<Graph::Edge>(
       std::make_pair(std::make_pair(vertex1, vertex2), weight));
   edges_[std::make_tuple(vertex1, vertex2)] = edge;
+  // Add edge id
+  edge_ids_[std::make_tuple(vertex1, vertex2)] = this->edgeid_;
+  this->edgeid_ += 1;
 
   // Vertex 1
   auto vertex1_edges = vertex_edges_[vertex1];
@@ -96,7 +99,8 @@ void abm::Graph::remove_edge(abm::graph::vertex_t vertex1,
   auto edge = edges_[std::make_tuple(vertex1, vertex2)];
   edges_.erase(edges_.find(std::make_tuple(vertex1, vertex2)));
 
-  if (edge_ids_.size() > 0)
+  if (edge_ids_.size() > 0 &&
+      edge_ids_.find(std::make_tuple(vertex1, vertex2)) != edge_ids_.end())
     edge_ids_.erase(edge_ids_.find(std::make_tuple(vertex1, vertex2)));
 
   auto v1edge = vertex_edges_.at(vertex1);
@@ -133,7 +137,7 @@ bool abm::Graph::read_graph_matrix_market(const std::string& filename) {
             istream >> nvertices;
             while (istream.good()) istream >> ignore;
             header = false;
-            this->assign_nvertices(nvertices);
+            this->assign_nvertices(nvertices + 1);
           }
           while (istream.good()) {
             // Read vertices edges and weights
@@ -285,7 +289,7 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Graph::dijkstra(
 }
 
 // Dijktra shortest paths from src to a vertex
-std::vector<std::array<abm::graph::vertex_t, 2>> abm::Graph::dijkstra_map(
+std::vector<abm::graph::vertex_t> abm::Graph::dijkstra_edges(
     abm::graph::vertex_t source, abm::graph::vertex_t destination) {
 
   // Using lambda to compare elements.
@@ -310,7 +314,7 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Graph::dijkstra_map(
   std::vector<graph::vertex_t> parent;
   parent.resize(this->vertices_.size(), -1);
 
-  std::vector<std::array<abm::graph::vertex_t, 2>> route_edges;
+  std::vector<abm::graph::vertex_t> route_edges;
   if (vertices_.find(source) == vertices_.end() ||
       vertices_.find(destination) == vertices_.end())
     return route_edges;
@@ -361,19 +365,13 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Graph::dijkstra_map(
       path.emplace_back(destination);
   }
   path.emplace_back(source);
-  // std::reverse(path.begin(), path.end());
 
   if (path.size() > 2) {
     // Reverse to arrange from source to destination
     for (auto itr = path.end() - 1; itr != path.begin(); --itr) {
       auto nitr = itr - 1;
-      if (itr != path.begin()) {
-        std::array<abm::graph::vertex_t, 2> edges{
-            static_cast<abm::graph::vertex_t>(*itr),
-            static_cast<abm::graph::vertex_t>(*nitr)};
-        route_edges.emplace_back(edges);
-        // std::cout << "route: " << *itr << "\t" << *nitr << "\n";
-      }
+      if (itr != path.begin())
+        route_edges.emplace_back(edge_ids_.at(std::make_tuple(*itr, *nitr)));
     }
   }
   return route_edges;

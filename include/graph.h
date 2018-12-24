@@ -116,12 +116,12 @@ class Graph {
   std::vector<std::array<graph::vertex_t, 2>> dijkstra(
       graph::vertex_t source, graph::vertex_t destination);
 
-  //! Compute the shortest path using priority queue for OSM
+  //! Compute the shortest path using priority queue and return edges
   //! \param[in] source ID of source vertex1
   //! \param[in] destination ID of destination vertex
   //! \retval route_edges Edges of the route from source to destination
-  std::vector<std::array<graph::vertex_t, 2>> dijkstra_map(
-      graph::vertex_t source, graph::vertex_t destination);
+  std::vector<graph::vertex_t> dijkstra_edges(graph::vertex_t source,
+                                              graph::vertex_t destination);
 
   //! Compute the shortest path using priority queue
   //! \param[in] source ID of source vertex1
@@ -146,6 +146,8 @@ class Graph {
   bool directed_{false};
   // Number of graph vertices
   unsigned nvertices_{std::numeric_limits<unsigned>::max()};
+  // Edge id
+  graph::vertex_t edgeid_{0};
   // Max id of vertex
   graph::vertex_t max_vertex_id_{std::numeric_limits<graph::vertex_t>::min()};
   // Edges
