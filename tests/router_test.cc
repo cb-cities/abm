@@ -58,7 +58,7 @@ TEST_CASE("Router class is checked", "[router]") {
 
       REQUIRE(router->read_od_pairs(od_pairs, 50) == true);
       const auto all_paths = router->compute_routes(mpi_rank, mpi_size);
-      REQUIRE(all_paths.size() == 3564);
+      REQUIRE(all_paths.size() == 3565);
     }
   }
 }

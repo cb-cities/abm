@@ -26,22 +26,19 @@ TEST_CASE("Graph class and shortest-path is checked", "[graph][sp][od]") {
     abm::graph::vertex_t destination = 3;
     const auto path = graph->dijkstra_vertices(source, destination);
 
-    /*
     // Check distances
-    REQUIRE(path.size() == graph->nvertices());
+    REQUIRE(path.size() == 3);
     // Check shortest path
-    REQUIRE(distances.at(3) == Approx(7.2).epsilon(Tolerance));
+    REQUIRE(graph->path_cost(path) == Approx(7.2).epsilon(Tolerance));
 
     // Check update edge
     SECTION("Check update edge") {
       // Update edge (1, 3) to weight 3.7
       graph->update_edge(1, 3, 3.7);
       // Run Dijkstra Priority Queue
-      sp = graph->dijkstra_priority_queue(source, destination);
-      // Get distances
-      distances = sp.distances;
+      const auto path = graph->dijkstra_vertices(source, destination);
       // Check shortest path
-      REQUIRE(distances.at(3) == Approx(3.7).epsilon(Tolerance));
+      REQUIRE(graph->path_cost(path) == Approx(3.7).epsilon(Tolerance));
     }
 
     // Check remove edge
@@ -49,22 +46,17 @@ TEST_CASE("Graph class and shortest-path is checked", "[graph][sp][od]") {
       // Remove edge (3, 1)
       graph->remove_edge(3, 1);
       // Run Dijkstra Priority Queue
-      sp = graph->dijkstra_priority_queue(source, destination);
-      // Get distances
-      distances = sp.distances;
+      const auto path = graph->dijkstra_vertices(source, destination);
       // Check shortest path
-      REQUIRE(distances.at(3) == Approx(7.2).epsilon(Tolerance));
+      REQUIRE(graph->path_cost(path) == Approx(7.2).epsilon(Tolerance));
 
       // Remove edge (2, 4)
       graph->remove_edge(2, 4);
       // Run Dijkstra Priority Queue
-      sp = graph->dijkstra_priority_queue(source, destination);
-      // Get distances
-      distances = sp.distances;
+      const auto new_path = graph->dijkstra_vertices(source, destination);
       // Check shortest path
-      REQUIRE(distances.at(3) == Approx(9.1).epsilon(Tolerance));
+      REQUIRE(graph->path_cost(new_path) == Approx(9.1).epsilon(Tolerance));
     }
-    */
   }
 
   // Test undirected graph

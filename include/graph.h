@@ -93,6 +93,12 @@ class Graph {
   std::vector<graph::vertex_t> dijkstra_edges(graph::vertex_t source,
                                               graph::vertex_t destination);
 
+  //! Path cost
+  //! \param[in] path Vertices of the path from source to destination
+  //! \retval cost Cost of traversed path
+  abm::graph::weight_t path_cost(
+      const std::vector<std::array<graph::vertex_t, 2>>& path);
+
  private:
   //! Assign number of vertices
   //! \param[in] nvertices Number of vertices in graph

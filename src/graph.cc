@@ -246,8 +246,7 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Graph::dijkstra_vertices(
   const auto path = this->dijkstra(source, destination);
 
   std::vector<std::array<abm::graph::vertex_t, 2>> route_vertices;
-  if (path.size() > 2) {
-    // Reverse to arrange from source to destination
+  if (path.size() > 0) {
     for (auto itr = path.begin(); itr != path.end() - 1; ++itr) {
       auto nitr = itr + 1;
       if (itr != path.end()) {
@@ -268,7 +267,7 @@ std::vector<abm::graph::vertex_t> abm::Graph::dijkstra_edges(
   const auto path = this->dijkstra(source, destination);
 
   std::vector<abm::graph::vertex_t> route_edges;
-  if (path.size() > 2) {
+  if (path.size() > 0) {
     // Reverse to arrange from source to destination
     for (auto itr = path.begin(); itr != path.end() - 1; ++itr) {
       auto nitr = itr + 1;
@@ -277,4 +276,13 @@ std::vector<abm::graph::vertex_t> abm::Graph::dijkstra_edges(
     }
   }
   return route_edges;
+}
+
+// Determine cost of path
+abm::graph::weight_t abm::Graph::path_cost(
+    const std::vector<std::array<abm::graph::vertex_t, 2>>& path) {
+  abm::graph::weight_t cost = 0.;
+  for (const auto& vertices : path)
+    cost += (edges_.at(std::make_tuple(vertices[0], vertices[1])))->second;
+  return cost;
 }
