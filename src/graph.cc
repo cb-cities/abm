@@ -1,19 +1,16 @@
 #include "graph.h"
 
 // Add edge
-inline void abm::Graph::add_edge(abm::graph::vertex_t vertex1,
-                                 abm::graph::vertex_t vertex2,
-                                 abm::graph::weight_t weight = 1) {
+inline void abm::Graph::add_edge(
+    abm::graph::vertex_t vertex1, abm::graph::vertex_t vertex2,
+    abm::graph::weight_t weight = 1,
+    abm::graph::vertex_t edgeid =
+        std::numeric_limits<abm::graph::vertex_t>::max()) {
   // Create a map of vertices
   if (vertices_.find(vertex1) == vertices_.end())
     vertices_[vertex1] = vertices_.size();
-
   if (vertices_.find(vertex2) == vertices_.end())
     vertices_[vertex2] = vertices_.size();
-
-  // Set max vertex ids
-  if (vertex1 > max_vertex_id_) max_vertex_id_ = vertex1 + 1;
-  if (vertex2 > max_vertex_id_) max_vertex_id_ = vertex2 + 1;
 
   if (!this->directed_)
     if (vertex1 > vertex2) std::swap(vertex1, vertex2);
@@ -23,50 +20,11 @@ inline void abm::Graph::add_edge(abm::graph::vertex_t vertex1,
       std::make_pair(std::make_pair(vertex1, vertex2), weight));
   edges_[std::make_tuple(vertex1, vertex2)] = edge;
   // Add edge id
-  edge_ids_[std::make_tuple(vertex1, vertex2)] = this->edgeid_;
-  this->edgeid_ += 1;
-
-  // Vertex 1
-  auto vertex1_edges = vertex_edges_[vertex1];
-  vertex1_edges.emplace_back(edge);
-  vertex_edges_[vertex1] =
-      std::vector<std::shared_ptr<Graph::Edge>>(vertex1_edges);
-
-  if (!this->directed_) {
-    // Vertex 2
-    auto vertex2_edges = vertex_edges_[vertex2];
-    vertex2_edges.emplace_back(edge);
-    vertex_edges_[vertex2] =
-        std::vector<std::shared_ptr<Graph::Edge>>(vertex2_edges);
-  }
-}
-
-// Add edge
-inline void abm::Graph::add_edge_osm(abm::graph::vertex_t vertex1,
-                                     abm::graph::vertex_t vertex2,
-                                     abm::graph::vertex_t edgeid,
-                                     abm::graph::weight_t weight = 1) {
-
-  // Create a map of vertices
-  if (vertices_.find(vertex1) == vertices_.end())
-    vertices_[vertex1] = vertices_.size();
-
-  if (vertices_.find(vertex2) == vertices_.end())
-    vertices_[vertex2] = vertices_.size();
-
-  // Set max vertex ids
-  if (vertex1 > max_vertex_id_) max_vertex_id_ = vertex1;
-  if (vertex2 > max_vertex_id_) max_vertex_id_ = vertex2;
-
-  if (!this->directed_)
-    if (vertex1 > vertex2) std::swap(vertex1, vertex2);
-
-  // Create an edge
-  auto edge = std::make_shared<Graph::Edge>(
-      std::make_pair(std::make_pair(vertex1, vertex2), weight));
-  edges_[std::make_tuple(vertex1, vertex2)] = edge;
-
-  edge_ids_[std::make_tuple(vertex1, vertex2)] = edgeid;
+  if (edgeid == std::numeric_limits<abm::graph::vertex_t>::max()) {
+    edge_ids_[std::make_tuple(vertex1, vertex2)] = this->edgeid_;
+    this->edgeid_ += 1;
+  } else
+    edge_ids_[std::make_tuple(vertex1, vertex2)] = edgeid;
 
   // Vertex 1
   auto vertex1_edges = vertex_edges_[vertex1];
@@ -168,7 +126,7 @@ bool abm::Graph::read_osm_graph(const std::string& filename) {
     abm::graph::weight_t weight;
     abm::graph::vertex_t nvertices = 0;
     while (in.read_row(edgeid, v1, v2, weight)) {
-      this->add_edge_osm(v1, v2, edgeid, weight);
+      this->add_edge(v1, v2, weight, edgeid);
       ++nvertices;
     }
     this->assign_nvertices(nvertices);
@@ -409,7 +367,7 @@ abm::ShortestPath abm::Graph::dijkstra_priority_queue(
 
   // Parent array to store shortest path tree
   sp.parent.clear();
-  sp.parent.resize(max_vertex_id_, -1);
+  sp.parent.resize(this->nvertices_, -1);
 
   // Insert source itself in priority queue and initialize its distance as
   // 0.
