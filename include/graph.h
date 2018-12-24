@@ -20,34 +20,6 @@
 #include "config.h"
 
 namespace abm {
-//! \brief ShortestPath struct to return source, distance and parents
-struct ShortestPath {
-  //! Get path from source to j using parent array
-  //! \param[in] parent Map of vertex to its parent id
-  //! \param[in] destination Destination vertex id to get path
-  //! \param[in] source Source vertex id to get path (SSSP set as -1)
-  //! \retval path Path from source to destination
-  std::vector<graph::vertex_t> get_path(graph::vertex_t source,
-                                        graph::vertex_t destination) {
-    // Create an empty path
-    std::vector<graph::vertex_t> path;
-    // Iterate until source has been reached
-    while (destination != source) {
-      destination = parent.at(destination);
-      if (destination != source) path.emplace_back(destination);
-    }
-    // Reverse to arrange from source to destination
-    std::reverse(path.begin(), path.end());
-    return path;
-  }
-
-  //! Source
-  graph::vertex_t source;
-  //! Distances
-  std::vector<graph::weight_t> distances;
-  //! Parent array to store shortest path tree
-  std::vector<graph::vertex_t> parent;
-};
 
 //! \brief Graph class to store vertices and edge and compute shortest path
 //! \details Graph class has Priority Queue Dijkstra algorithm for SSSP
@@ -98,7 +70,7 @@ class Graph {
   //! Read OSM graph file format
   //! \param[in] filename Name of input MatrixMarket file
   //! \retval status File read status
-  bool read_osm_graph(const std::string& filename);
+  bool read_graph_osm(const std::string& filename);
 
   //! Compute the shortest path using priority queue
   //! \param[in] source ID of source vertex1
@@ -120,13 +92,6 @@ class Graph {
   //! \retval route_edges Edges of the route from source to destination
   std::vector<graph::vertex_t> dijkstra_edges(graph::vertex_t source,
                                               graph::vertex_t destination);
-
-  //! Compute the shortest path using priority queue
-  //! \param[in] source ID of source vertex1
-  //! \param[in] destination ID of destination vertex (default is -1 for SSSP)
-  //! \retval sp Shortest path and distances
-  ShortestPath dijkstra_priority_queue(graph::vertex_t source,
-                                       graph::vertex_t destination = -1);
 
  private:
   //! Assign number of vertices
