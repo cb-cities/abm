@@ -66,30 +66,6 @@ TEST_CASE("Graph class and shortest-path is checked", "[graph][sp][od]") {
     }
   }
 
-  // Test Single Source Multiple Destinations directed graph
-  SECTION("Test Single Source Multiple Destinations in directed graph") {
-    // Set graph properties
-    const bool directed = true;
-
-    // Create graph object
-    auto graph = std::make_unique<abm::Graph>(directed);
-    // Create a simple example graph
-    graph->generate_simple_graph();
-
-    // Run Dijkstra Priority Queue
-    abm::graph::vertex_t source = 1;
-    std::vector<abm::graph::vertex_t> destinations{2, 3};
-    auto sp = graph->dijkstra_priority_queue(source, destinations);
-    auto distances = sp.distances;
-
-    // Check distances
-    REQUIRE(distances.size() == graph->nvertices());
-    // Check shortest path
-    REQUIRE(distances.at(2) == Approx(1.5).epsilon(Tolerance));
-    // Check shortest path
-    REQUIRE(distances.at(3) == Approx(7.2).epsilon(Tolerance));
-  }
-
   // Test undirected graph
   SECTION("Test SSSP in undirected graph") {
     const bool directed = false;
@@ -121,30 +97,6 @@ TEST_CASE("Graph class and shortest-path is checked", "[graph][sp][od]") {
       // Check shortest path
       REQUIRE(distances.at(3) == Approx(9.1).epsilon(Tolerance));
     }
-  }
-
-  // Test Single Source Multiple Destinations undirected graph
-  SECTION("Test Single Source Multiple Destinations in undirected graph") {
-    // Set graph properties
-    const bool directed = false;
-
-    // Create graph object
-    auto graph = std::make_unique<abm::Graph>(directed);
-    // Create a simple example graph
-    graph->generate_simple_graph();
-
-    // Run Dijkstra Priority Queue
-    abm::graph::vertex_t source = 1;
-    std::vector<abm::graph::vertex_t> destinations{2, 3};
-    auto sp = graph->dijkstra_priority_queue(source, destinations);
-    auto distances = sp.distances;
-
-    // Check distances
-    REQUIRE(distances.size() == graph->nvertices());
-    // Check shortest path
-    REQUIRE(distances.at(2) == Approx(1.5).epsilon(Tolerance));
-    // Check shortest path
-    REQUIRE(distances.at(3) == Approx(5.6).epsilon(Tolerance));
   }
 
   SECTION("Test SSSP in directed graph from file") {
@@ -195,11 +147,33 @@ TEST_CASE("Graph class and shortest-path is checked", "[graph][sp][od]") {
     abm::graph::vertex_t source = 1020;
     abm::graph::vertex_t destination = 20;
 
-    auto path = graph->dijkstra(source, destination);
+    std::vector<abm::graph::vertex_t> vertices{
+        1020,  39432, 794,   35644, 793,   792,   791,   790,   37527, 3802,
+        3781,  37526, 24098, 31169, 30417, 31166, 30410, 31160, 30401, 30400,
+        30389, 30396, 30387, 30395, 31168, 41904, 41863, 34668, 24734, 39642,
+        25893, 3965,  3961,  3912,  14938, 3826,  3999,  3728,  12499, 19790,
+        24057, 24018, 33932, 41303, 24741, 19849, 5376,  19794, 19795, 36365,
+        19942, 19944, 19801, 19803, 19806, 19804, 19808, 20017, 22901, 33572,
+        33536, 33556, 33502, 29020, 12487, 21616, 12483, 40398, 12481, 33509,
+        9117,  4864,  28397, 33524, 40399, 33559, 9125,  40396, 33516, 9394,
+        41476, 2497,  34451, 20062, 34447, 34443, 8366,  8334,  21305, 14905,
+        21299, 512,   32121, 30412, 40884, 38447, 8752,  27099, 39857, 11226,
+        20010, 31373, 29021, 13582, 130,   41772, 134,   37768, 486,   26861,
+        26756, 3944,  3929,  3928,  26903, 1725,  3935,  4174,  3914,  38612,
+        35459, 27994, 3892,  13726, 34186, 40267, 34187, 37158, 33669, 34193,
+        30608, 34785, 37289, 37290, 24829, 24771, 34505, 27850, 34507, 27851,
+        1897,  10798, 25,    19,    11913, 11907, 10899, 10897, 10953, 33466,
+        20};
+
+    const auto route_vertices = graph->dijkstra(source, destination);
+    for (unsigned i = 0; i < vertices.size(); ++i)
+      REQUIRE(route_vertices.at(i) == vertices.at(i));
+
+    const auto path = graph->dijkstra_vertices(source, destination);
     // Check distances
     REQUIRE(path.size() == 150);
 
-    auto edges = graph->dijkstra_edges(source, destination);
+    const auto edges = graph->dijkstra_edges(source, destination);
     // Check distances
     REQUIRE(edges.size() == 150);
 

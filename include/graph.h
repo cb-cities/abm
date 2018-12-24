@@ -43,8 +43,6 @@ struct ShortestPath {
 
   //! Source
   graph::vertex_t source;
-  //! Destination
-  // std::vector<vertex_t> destinations;
   //! Distances
   std::vector<graph::weight_t> distances;
   //! Parent array to store shortest path tree
@@ -105,11 +103,18 @@ class Graph {
   //! Compute the shortest path using priority queue
   //! \param[in] source ID of source vertex1
   //! \param[in] destination ID of destination vertex
-  //! \retval route_edges Edges of the route from source to destination
-  std::vector<std::array<graph::vertex_t, 2>> dijkstra(
+  //! \retval path Vertices of the path from source to destination
+  std::vector<graph::vertex_t> dijkstra(graph::vertex_t source,
+                                        graph::vertex_t destination);
+
+  //! Compute the Dijkstra shortest path and return vertices
+  //! \param[in] source ID of source vertex1
+  //! \param[in] destination ID of destination vertex
+  //! \retval route Vertices pair of the route from source to destination
+  std::vector<std::array<graph::vertex_t, 2>> dijkstra_vertices(
       graph::vertex_t source, graph::vertex_t destination);
 
-  //! Compute the shortest path using priority queue and return edges
+  //! Compute the Dijkstra shortest path and return edges
   //! \param[in] source ID of source vertex1
   //! \param[in] destination ID of destination vertex
   //! \retval route_edges Edges of the route from source to destination
@@ -122,13 +127,6 @@ class Graph {
   //! \retval sp Shortest path and distances
   ShortestPath dijkstra_priority_queue(graph::vertex_t source,
                                        graph::vertex_t destination = -1);
-
-  //! Compute the shortest path using priority queue
-  //! \param[in] source ID of source vertex1
-  //! \param[in] destinations IDs of destination vertex
-  //! \retval sp Shortest path and distances
-  ShortestPath dijkstra_priority_queue(
-      graph::vertex_t source, const std::vector<graph::vertex_t>& destinations);
 
  private:
   //! Assign number of vertices
