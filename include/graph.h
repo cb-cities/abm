@@ -2,6 +2,7 @@
 #define ABM_GRAPH_H_
 
 #include <algorithm>
+#include <array>
 #include <fstream>
 #include <iostream>
 #include <limits>
@@ -13,41 +14,12 @@
 #include <unordered_map>
 #include <vector>
 
+#include "csv.h"
 #include "tsl/robin_map.h"
 
 #include "config.h"
 
 namespace abm {
-//! \brief ShortestPath struct to return source, distance and parents
-struct ShortestPath {
-  //! Get path from source to j using parent array
-  //! \param[in] parent Map of vertex to its parent id
-  //! \param[in] destination Destination vertex id to get path
-  //! \param[in] source Source vertex id to get path (SSSP set as -1)
-  //! \retval path Path from source to destination
-  std::vector<graph::vertex_t> get_path(graph::vertex_t source,
-                                        graph::vertex_t destination) {
-    // Create an empty path
-    std::vector<graph::vertex_t> path;
-    // Iterate until source has been reached
-    while (destination != source) {
-      destination = parent.at(destination);
-      if (destination != source) path.emplace_back(destination);
-    }
-    // Reverse to arrange from source to destination
-    std::reverse(path.begin(), path.end());
-    return path;
-  }
-
-  //! Source
-  graph::vertex_t source;
-  //! Destination
-  // std::vector<vertex_t> destinations;
-  //! Distances
-  std::vector<graph::weight_t> distances;
-  //! Parent array to store shortest path tree
-  std::vector<graph::vertex_t> parent;
-};
 
 //! \brief Graph class to store vertices and edge and compute shortest path
 //! \details Graph class has Priority Queue Dijkstra algorithm for SSSP
@@ -71,8 +43,9 @@ class Graph {
   //! \param[in] vertex1 ID of vertex1
   //! \param[in] vertex2 ID of vertex2
   //! \param[in] weight Weight of edge connecting vertex 1 and 2
+  //! \param[in] edge_id ID of edge
   void add_edge(graph::vertex_t vertex1, graph::vertex_t vertex2,
-                graph::weight_t weight);
+                graph::weight_t weight, graph::vertex_t edgeid);
 
   //! Update edge of a graph
   //! \param[in] vertex1 ID of vertex1
@@ -94,26 +67,42 @@ class Graph {
   //! \retval status File read status
   bool read_graph_matrix_market(const std::string& filename);
 
+  //! Read OSM graph file format
+  //! \param[in] filename Name of input MatrixMarket file
+  //! \retval status File read status
+  bool read_graph_osm(const std::string& filename);
+
   //! Compute the shortest path using priority queue
   //! \param[in] source ID of source vertex1
   //! \param[in] destination ID of destination vertex
-  //! \retval route_edges Edges of the route from source to destination
-  std::vector<std::array<graph::vertex_t, 2>> dijkstra(
+  //! \retval path Vertices of the path from source to destination
+  std::vector<graph::vertex_t> dijkstra(graph::vertex_t source,
+                                        graph::vertex_t destination);
+
+  //! Compute the Dijkstra shortest path and return vertices
+  //! \param[in] source ID of source vertex1
+  //! \param[in] destination ID of destination vertex
+  //! \retval route Vertices pair of the route from source to destination
+  std::vector<std::array<graph::vertex_t, 2>> dijkstra_vertices(
       graph::vertex_t source, graph::vertex_t destination);
 
-  //! Compute the shortest path using priority queue
+  //! Compute the Dijkstra shortest path and return edges
   //! \param[in] source ID of source vertex1
-  //! \param[in] destination ID of destination vertex (default is -1 for SSSP)
-  //! \retval sp Shortest path and distances
-  ShortestPath dijkstra_priority_queue(graph::vertex_t source,
-                                       graph::vertex_t destination = -1);
+  //! \param[in] destination ID of destination vertex
+  //! \retval route_edges Edges of the route from source to destination
+  std::vector<graph::vertex_t> dijkstra_edges(graph::vertex_t source,
+                                              graph::vertex_t destination);
 
-  //! Compute the shortest path using priority queue
-  //! \param[in] source ID of source vertex1
-  //! \param[in] destinations IDs of destination vertex
-  //! \retval sp Shortest path and distances
-  ShortestPath dijkstra_priority_queue(
-      graph::vertex_t source, const std::vector<graph::vertex_t>& destinations);
+  //! Path cost from edge ids
+  //! \param[in] path Vertices of the path from source to destination
+  //! \retval cost Cost of traversed path
+  abm::graph::weight_t path_cost(
+      const std::vector<std::array<graph::vertex_t, 2>>& path);
+
+  //! Path cost from vertices ids
+  //! \param[in] path Edges of the path from source to destination
+  //! \retval cost Cost of traversed path
+  abm::graph::weight_t path_cost(const std::vector<graph::vertex_t>& path);
 
  private:
   //! Assign number of vertices
@@ -124,12 +113,23 @@ class Graph {
   bool directed_{false};
   // Number of graph vertices
   unsigned nvertices_{std::numeric_limits<unsigned>::max()};
+  // Edge id
+  graph::vertex_t edgeid_{0};
+  // Max id of vertex
+  graph::vertex_t max_vertex_id_{std::numeric_limits<graph::vertex_t>::min()};
   // Edges
   std::map<std::tuple<graph::vertex_t, graph::vertex_t>, std::shared_ptr<Edge>>
       edges_;
   // adjacency list with iteration over each edge
   tsl::robin_map<graph::vertex_t, std::vector<std::shared_ptr<Edge>>>
       vertex_edges_;
+  // Vertices and counts
+  tsl::robin_map<graph::vertex_t, graph::vertex_t> vertices_;
+  // Global edges
+  std::map<std::tuple<graph::vertex_t, graph::vertex_t>, graph::vertex_t>
+      edge_ids_;
+  // Vertices and counts
+  tsl::robin_map<graph::vertex_t, graph::weight_t> edge_costs_;
 };
 
 }  // namespace abm
