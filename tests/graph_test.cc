@@ -130,14 +130,19 @@ TEST_CASE("Graph class and shortest-path is checked", "[graph][sp][od]") {
       REQUIRE(route_vertices.at(i) == vertices.at(i));
 
     const auto path = graph->dijkstra_vertices(source, destination);
+
     // Check # of edges
     REQUIRE(path.size() == 150);
+    REQUIRE(graph->path_cost(path) ==
+            Approx(12409.660000000002).epsilon(Tolerance));
+
     // Check shortest path
-    // REQUIRE(distances.at(20) ==
-    // Approx(12409.660000000002).epsilon(Tolerance));
     const auto edges = graph->dijkstra_edges(source, destination);
+
     // Check distances
     REQUIRE(edges.size() == 150);
+    // REQUIRE(graph->path_cost(edges) ==
+    // Approx(12409.660000000002).epsilon(Tolerance));
 
     std::vector<abm::graph::vertex_t> route{
         1721,  75304, 1345,  69459, 1341,  1338,  1335,  1334,  72156, 6806,

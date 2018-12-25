@@ -19,12 +19,18 @@ inline void abm::Graph::add_edge(
   auto edge = std::make_shared<Graph::Edge>(
       std::make_pair(std::make_pair(vertex1, vertex2), weight));
   edges_[std::make_tuple(vertex1, vertex2)] = edge;
+
   // Add edge id
   if (edgeid == std::numeric_limits<abm::graph::vertex_t>::max()) {
     edge_ids_[std::make_tuple(vertex1, vertex2)] = this->edgeid_;
+    // Add edge cost
+    edge_costs_[this->edgeid_] = weight;
     this->edgeid_ += 1;
-  } else
+  } else {
     edge_ids_[std::make_tuple(vertex1, vertex2)] = edgeid;
+    // Add edge cost
+    edge_costs_[edgeid] = weight;
+  }
 
   // Vertex 1
   auto vertex1_edges = vertex_edges_[vertex1];
@@ -284,5 +290,13 @@ abm::graph::weight_t abm::Graph::path_cost(
   abm::graph::weight_t cost = 0.;
   for (const auto& vertices : path)
     cost += (edges_.at(std::make_tuple(vertices[0], vertices[1])))->second;
+  return cost;
+}
+
+// Determine cost of path
+abm::graph::weight_t abm::Graph::path_cost(
+    const std::vector<abm::graph::vertex_t>& path) {
+  abm::graph::weight_t cost = 0.;
+  for (const auto& edge : path) cost += edge_costs_.at(edge);
   return cost;
 }

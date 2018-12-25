@@ -93,11 +93,16 @@ class Graph {
   std::vector<graph::vertex_t> dijkstra_edges(graph::vertex_t source,
                                               graph::vertex_t destination);
 
-  //! Path cost
+  //! Path cost from edge ids
   //! \param[in] path Vertices of the path from source to destination
   //! \retval cost Cost of traversed path
   abm::graph::weight_t path_cost(
       const std::vector<std::array<graph::vertex_t, 2>>& path);
+
+  //! Path cost from vertices ids
+  //! \param[in] path Edges of the path from source to destination
+  //! \retval cost Cost of traversed path
+  abm::graph::weight_t path_cost(const std::vector<graph::vertex_t>& path);
 
  private:
   //! Assign number of vertices
@@ -123,6 +128,8 @@ class Graph {
   // Global edges
   std::map<std::tuple<graph::vertex_t, graph::vertex_t>, graph::vertex_t>
       edge_ids_;
+  // Vertices and counts
+  tsl::robin_map<graph::vertex_t, graph::weight_t> edge_costs_;
 };
 
 }  // namespace abm
