@@ -256,7 +256,7 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Graph::dijkstra_vertices(
     for (auto itr = path.begin(); itr != path.end() - 1; ++itr) {
       auto nitr = itr + 1;
       if (itr != path.end()) {
-        std::array<abm::graph::vertex_t, 2> edges{
+        std::array<abm::graph::vertex_t, 2> edges = {
             static_cast<abm::graph::vertex_t>(*itr),
             static_cast<abm::graph::vertex_t>(*nitr)};
         route_vertices.emplace_back(edges);
