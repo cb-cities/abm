@@ -25,11 +25,13 @@ TEST_CASE("Graph class and shortest-path is checked", "[graph][sp][od]") {
     abm::graph::vertex_t source = 1;
     abm::graph::vertex_t destination = 3;
     const auto path = graph->dijkstra_vertices(source, destination);
-
     // Check distances
     REQUIRE(path.size() == 3);
     // Check shortest path
     REQUIRE(graph->path_cost(path) == Approx(7.2).epsilon(Tolerance));
+
+    const auto ual = graph->dijkstra_vertices_ual(source, destination);
+    REQUIRE(ual.size() == 5);
 
     // Check update edge
     SECTION("Check update edge") {

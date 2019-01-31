@@ -266,6 +266,23 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Graph::dijkstra_vertices(
   return route_vertices;
 }
 
+// Dijktra shortest paths from src to a vertex return vertices
+std::vector<abm::graph::vertex_t> abm::Graph::dijkstra_vertices_ual(
+    abm::graph::vertex_t source, abm::graph::vertex_t destination) {
+
+  const auto path = this->dijkstra(source, destination);
+
+  std::vector<abm::graph::vertex_t> route_vertices;
+  if (path.size() > 0) {
+    for (auto itr = path.begin(); itr != path.end(); ++itr) {
+      if (itr != path.end())
+        route_vertices.emplace_back(static_cast<abm::graph::vertex_t>(*itr));
+    }
+    route_vertices.emplace_back(-1);
+  }
+  return route_vertices;
+}
+
 // Dijktra shortest paths from src to a vertex return edges
 std::vector<abm::graph::vertex_t> abm::Graph::dijkstra_edges(
     abm::graph::vertex_t source, abm::graph::vertex_t destination) {

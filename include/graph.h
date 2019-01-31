@@ -86,6 +86,13 @@ class Graph {
   std::vector<std::array<graph::vertex_t, 2>> dijkstra_vertices(
       graph::vertex_t source, graph::vertex_t destination);
 
+  //! Compute the Dijkstra shortest path and return vertices suitable for UAL
+  //! \param[in] source ID of source vertex1
+  //! \param[in] destination ID of destination vertex
+  //! \retval route Vertices pair of the route from source to destination
+  std::vector<graph::vertex_t> dijkstra_vertices_ual(
+      graph::vertex_t source, graph::vertex_t destination);
+
   //! Compute the Dijkstra shortest path and return edges
   //! \param[in] source ID of source vertex1
   //! \param[in] destination ID of destination vertex
