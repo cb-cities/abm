@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
     // Read MatrixMarket file
     const std::string filename = argv[1];
     od_file = argv[2];
-    graph->read_graph_matrix_market(filename);
+    graph->read_graph_osm(filename);
   } else {
 #ifdef USE_MPI
     MPI_Abort(MPI_COMM_WORLD, 1);
