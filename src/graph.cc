@@ -127,19 +127,40 @@ bool abm::Graph::read_graph_matrix_market(const std::string& filename) {
 bool abm::Graph::read_graph_osm(const std::string& filename) {
   bool status = true;
   try {
-    io::CSVReader<4> in(filename);
-    in.read_header(io::ignore_extra_column, "uniqueid", "u", "v", "length");
-    abm::graph::vertex_t edgeid, v1, v2;
-    abm::graph::weight_t weight;
+    std::fstream file;
     abm::graph::vertex_t nvertices = 0;
-    while (in.read_row(edgeid, v1, v2, weight)) {
-      this->add_edge(v1, v2, weight, edgeid);
-      ++nvertices;
+    file.open(filename.c_str(), std::ios::in);
+    if (file.is_open() && file.good()) {
+      // Line
+      std::string line;
+      bool header = true;
+      double ignore;
+      while (std::getline(file, line)) {
+        std::istringstream istream(line);
+        abm::graph::vertex_t edgeid, v1, v2;
+        abm::graph::weight_t weight;
+        // ignore comment lines (# or !) or blank lines
+        if ((line.find('#') == std::string::npos) &&
+            (line.find('%') == std::string::npos) && (line != "")) {
+          if (header) {
+            // Ignore header
+            // istream >> nvertices;
+            while (istream.good()) istream >> ignore;
+            header = false;
+            // this->assign_nvertices(nvertices + 1);
+          }
+          while (istream.good()) {
+            // Read vertices edges and weights
+            istream >> edgeid >> v1 >> v2 >> weight;
+            this->add_edge(v1, v2, weight, edgeid);
+            ++nvertices;
+          }
+        }
+      }
+      this->assign_nvertices(nvertices);
     }
-    this->assign_nvertices(nvertices);
     std::cout << "Graph summary #edges: " << this->edges_.size()
               << " #vertices: " << this->nvertices_ << "\n";
-
   } catch (std::exception& exception) {
     std::cout << "Read OSM file: " << exception.what() << "\n";
     status = false;
