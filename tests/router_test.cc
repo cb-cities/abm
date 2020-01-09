@@ -1,8 +1,9 @@
 #include <memory>
 
 #include "catch.hpp"
+#ifdef USE_MPI
 #include "mpi.h"
-
+#endif
 #include "router.h"
 
 // Check Router class
@@ -49,12 +50,15 @@ TEST_CASE("Router class is checked", "[router]") {
 
     SECTION("Compute routes") {
       // MPI ranks
-      int mpi_rank;
+      int mpi_rank = 0;
+#ifdef USE_MPI
       MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
-
+#endif
       // Get number of MPI ranks
-      int mpi_size;
+      int mpi_size  = 1;
+#ifdef USE_MPI
       MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+#endif
 
       REQUIRE(router->read_od_pairs(od_pairs, 50) == true);
       const auto all_paths = router->compute_routes(mpi_rank, mpi_size);
