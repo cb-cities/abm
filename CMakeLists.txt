@@ -36,6 +36,12 @@ option(ABM_BUILD_TESTING "enable testing for abm" ON)
 # CMake Modules
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 
+find_package(CUDA)
+include_directories(${CUDA_INCLUDE_DIRS})
+
+find_package(Thrust)
+include_directories(${THRUST_INCLUDE_DIR})
+
 # MPI
 find_package(MPI)
 if (MPI_FOUND)

@@ -1,4 +1,5 @@
 #include "graph.h"
+#include <cugar/basic/priority_queue.h>
 
 // Add edge
 inline void abm::Graph::add_edge(
@@ -169,17 +170,17 @@ std::vector<abm::graph::vertex_t> abm::Graph::dijkstra(
 
   // Using lambda to compare elements.
   auto compare =
-      [](std::pair<abm::graph::weight_t, abm::graph::vertex_t> left,
-         std::pair<abm::graph::weight_t, abm::graph::vertex_t> right) {
+      [](const std::pair<abm::graph::weight_t, abm::graph::vertex_t> left,
+         const std::pair<abm::graph::weight_t, abm::graph::vertex_t> right) {
         return left.first > right.first;
       };
-
+  std::vector<std::pair<abm::graph::weight_t, abm::graph::vertex_t>> pqvec;
   // Create a priority queue to store weights and vertices
-  std::priority_queue<
+  cugar::priority_queue<
       std::pair<abm::graph::weight_t, abm::graph::vertex_t>,
       std::vector<std::pair<abm::graph::weight_t, abm::graph::vertex_t>>,
       decltype(compare)>
-      priority_queue(compare);
+      priority_queue(pqvec, compare);
 
   // Create a vector for distances and initialize all to max
   std::vector<graph::weight_t> distances;
