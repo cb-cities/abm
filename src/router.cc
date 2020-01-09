@@ -58,10 +58,10 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Router::compute_routes(
   std::vector<std::array<abm::graph::vertex_t, 3>> paths_idx;
   paths_idx.reserve(od_pairs.size());
 
-#pragma omp parallel for schedule(dynamic)
+#pragma acc parallel loop
   for (abm::graph::vertex_t i = 0; i < od_pairs.size(); ++i) {
     const auto sp = graph_->dijkstra_vertices(od_pairs[i][0], od_pairs[i][1]);
-#pragma omp critical
+#pragma acc atomic
     {
       paths_idx.emplace_back(std::array<abm::graph::vertex_t, 3>(
           {i, static_cast<abm::graph::vertex_t>(paths.size()),

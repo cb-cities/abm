@@ -14,8 +14,11 @@
 #include <unordered_map>
 #include <vector>
 
+#include <openacc.h>
 #include "csv.h"
 #include "tsl/robin_map.h"
+#include <thrust/host_vector.h>
+#include <thrust/device_vector.h>
 
 #include "config.h"
 
@@ -76,6 +79,7 @@ class Graph {
   //! \param[in] source ID of source vertex1
   //! \param[in] destination ID of destination vertex
   //! \retval path Vertices of the path from source to destination
+  #pragma acc routine seq
   std::vector<graph::vertex_t> dijkstra(graph::vertex_t source,
                                         graph::vertex_t destination);
 
