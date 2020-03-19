@@ -30,7 +30,7 @@ jobs:
       - run:
           name: clang-format
           command: |
-            python ./clang-tools/run-clang-format.py -r include/* src/*
+            python3 ./clang-tools/run-clang-format.py -r include/* src/* tests/*
       # codecoverage
       - run:
           name: codecov.io
