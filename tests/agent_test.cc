@@ -24,10 +24,11 @@ TEST_CASE("Agent class is checked", "[agent]") {
       // Check assigned values
       REQUIRE(test_agent->id() == agent_id);
     }
-    
+
     SECTION("Initialization with id, origin and destination") {
       // Create test agent
-      auto test_agent = std::make_unique<abm::Agent>(agent_id, origin, destination);
+      auto test_agent =
+          std::make_unique<abm::Agent>(agent_id, origin, destination);
 
       // Check assigned values
       REQUIRE(test_agent->id() == agent_id);

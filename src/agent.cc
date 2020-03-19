@@ -11,7 +11,8 @@
 //   this->path_ = path;
 // };
 
-// // Print path in the format of (start_of_edge, end_of_edge, w=weight_of_edge),
+// // Print path in the format of (start_of_edge, end_of_edge,
+// w=weight_of_edge),
 // // (s, e, w=), ...
 // void abm::Agent::print_path() {
 //   if (path_.size() > 0) {
@@ -30,7 +31,8 @@
 // // Move agent
 // void abm::Agent::move_agent(graph::weight_t time_limit) {
 //   if (path_.size() > 0) {
-//     // Keep record of cumulated edge cost (cumulative travel time) not to exceed
+//     // Keep record of cumulated edge cost (cumulative travel time) not to
+//     exceed
 //     // the time_limit
 //     abm::graph::weight_t agent_time = 0;
 //     // Change/Keep agent status to 1 "enroute"
@@ -54,7 +56,8 @@
 //       }
 //     }
 //   }
-//   // When agent reachs destination, update its status to 2 "arrival" and delete
+//   // When agent reachs destination, update its status to 2 "arrival" and
+//   delete
 //   // the path
 //   if (current_node_ == destination_) {
 //     this->status_ = 2;
