@@ -18,22 +18,22 @@ class Agent {
   //! \param[in] id Agent id
   //! \param[in] origin Agent origin
   //! \param[in] destination Agent destination
-  explicit Agent(graph::vertex_t id) : id_{id} {};
-  explicit Agent(graph::vertex_t id, graph::vertex_t origin,
-                 graph::vertex_t destination)
+  explicit Agent(graph::vertex_t& id) : id_{id} {};
+  explicit Agent(graph::vertex_t& id, graph::vertex_t& origin,
+                 graph::vertex_t& destination)
       : id_{id}, origin_{origin}, destination_{destination} {};
 
   //! Get and set id
   graph::vertex_t id() const { return id_; }
-  graph::vertex_t id(graph::vertex_t id) { id_ = id; }
+  graph::vertex_t id(graph::vertex_t& id) { id_ = id; }
 
   //! Get and set origin
   graph::vertex_t origin() const { return origin_; }
-  graph::vertex_t origin(graph::vertex_t origin) { origin_ = origin; }
+  graph::vertex_t origin(graph::vertex_t& origin) { origin_ = origin; }
 
   //! Get and set destination
   graph::vertex_t destination() const { return destination_; }
-  graph::vertex_t destination(graph::vertex_t destination) {
+  graph::vertex_t destination(graph::vertex_t& destination) {
     destination_ = destination;
   }
 
