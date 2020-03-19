@@ -14,65 +14,36 @@ namespace abm {
 //! and compute path from current node to destination.
 class Agent {
  public:
-  //! Construct an agent class
-  //! \param[in] graph Pass a reference of the graph that the agent does routing
-  //! on
-  explicit Agent(const std::shared_ptr<abm::Graph>& graph) : graph_{graph} {};
+  //! Construct an agent class from either an id, or id, origin and destination
+  //! \param[in] id Agent id
+  //! \param[in] origin Agent origin
+  //! \param[in] destination Agent destination
+  explicit Agent(graph::vertex_t id) : id_{id} {};
+  explicit Agent(graph::vertex_t id, graph::vertex_t origin, graph::vertex_t destination) : id_{id}, origin_{origin}, destination_{destination} {};
 
-  //! Set id
-  //! \param[in] id Agent id assigned to the agent object
-  void set_id(graph::vertex_t id) { id_ = id; }
-  //! Get id
-  graph::vertex_t get_id() const { return id_; }
+  //! Get and set id
+  graph::vertex_t id() const { return id_; }
+  graph::vertex_t id(graph::vertex_t id) { id_ = id; }
 
-  //! Set origin and initialize status to wait for departure, current node to
-  //! origin \param[in] origin Origin vertex assigned to agent
-  void set_origin(graph::vertex_t origin) {
-    origin_ = origin;
-    status_ = 0;
-    current_node_ = origin;
-  }
-  //! Get origin
-  graph::vertex_t get_origin() const { return origin_; }
+  //! Get and set origin
+  graph::vertex_t origin() const { return origin_; }
+  graph::vertex_t origin(graph::vertex_t origin) { origin_ = origin; }
 
-  //! Set destination
-  //! \param[in] destination Destination vertex assigned to agent
-  void set_destination(graph::vertex_t destination) {
-    destination_ = destination;
-  }
-  //! Get destination
-  graph::vertex_t get_destination() const { return destination_; }
+  //! Get and set destination
+  graph::vertex_t destination() const { return destination_; }
+  graph::vertex_t destination(graph::vertex_t destination) { destination_ = destination; }
 
-  //! Set departure_time
-  //! \param[in] departure_time Departure time of an agent
-  void set_departure_time(graph::weight_t departure_time) {
-    departure_time_ = departure_time;
-  }
-  //! Get departure time
-  graph::weight_t get_departure_time() const { return departure_time_; }
+  //! Get and set departure time
+  double departure_time() const { return departure_time_; }
+  double departure_time(double departure_time) { departure_time_ = departure_time; }
 
   // Get current node
-  graph::vertex_t get_current_node() const { return current_node_; }
+  graph::vertex_t current_node() const { return current_node_; }
 
   //! Get status
   //! \retval Status of the agent. 0: waiting to depart; 1: enroute; 2: reached
   //! destination.
-  int get_status() const { return status_; }
-
-  //! Compute path based on current node and destination
-  void compute_path();
-
-  //! Get path
-  //! \retval Return path from current node to destination as a list of vertices
-  std::vector<abm::graph::vertex_t> get_path() { return path_; }
-
-  //! Print path
-  void print_path();
-
-  //! Move agent, update current_node_, path_ and status_ of the agent object
-  //! \param[in] time_limit The time that sets the limit on the total weights of
-  //! a sub route that an agent can cover in the current time step
-  void move_agent(graph::weight_t time_limit);
+  int status() const { return status_; }
 
  private:
   //! Agent id
@@ -89,12 +60,6 @@ class Agent {
 
   //! Agent current node
   graph::vertex_t current_node_{std::numeric_limits<graph::vertex_t>::max()};
-
-  //! Graph that agent travels on
-  std::shared_ptr<abm::Graph> graph_;
-
-  //! Path from current node to destination
-  std::vector<abm::graph::vertex_t> path_;
 
   //! status: 0: haven't started routing. 1: en_route. 2: arrived.
   int status_{std::numeric_limits<int>::max()};
