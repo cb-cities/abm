@@ -25,21 +25,16 @@ class Agent {
 
   //! Get and set id
   graph::vertex_t id() const { return id_; }
-  graph::vertex_t id(const graph::vertex_t& id) { id_ = id; }
 
   //! Get and set origin
   graph::vertex_t origin() const { return origin_; }
-  graph::vertex_t origin(const graph::vertex_t& origin) { origin_ = origin; }
 
   //! Get and set destination
   graph::vertex_t destination() const { return destination_; }
-  graph::vertex_t destination(const graph::vertex_t& destination) {
-    destination_ = destination;
-  }
 
   //! Get and set departure time
   double departure_time() const { return departure_time_; }
-  double departure_time(const double departure_time) {
+  void departure_time(const double departure_time) {
     departure_time_ = departure_time;
   }
 

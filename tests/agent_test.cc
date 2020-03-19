@@ -1,5 +1,3 @@
-#include <memory>
-
 #include "catch.hpp"
 
 #include "agent.h"
