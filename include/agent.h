@@ -41,10 +41,12 @@ class Agent {
   // Get current node
   graph::vertex_t current_node() const { return current_node_; }
 
+  //! status: 0: haven't started routing. 1: en_route. 2: arrived.
+  enum class Status { PREDEPART, ENROUTE, ARRIVE };
   //! Get status
   //! \retval Status of the agent. 0: waiting to depart; 1: enroute; 2: reached
   //! destination.
-  int status() const { return status_; }
+  Status status() const { return status_; }
 
  private:
   //! Agent id
@@ -63,7 +65,7 @@ class Agent {
   graph::vertex_t current_node_{std::numeric_limits<graph::vertex_t>::max()};
 
   //! status: 0: haven't started routing. 1: en_route. 2: arrived.
-  int status_{std::numeric_limits<int>::max()};
+  Status status_;
 };
 
 }  // namespace abm
