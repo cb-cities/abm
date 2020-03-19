@@ -25,9 +25,9 @@ class Agent {
   //! Get id
   graph::vertex_t get_id() const { return id_; }
 
-  //! Set origin and initialize status to wait for departure, current node to origin
-  //! \param[in] origin Origin vertex assigned to agent
-  void set_origin(graph::vertex_t origin) { 
+  //! Set origin and initialize status to wait for departure, current node to
+  //! origin \param[in] origin Origin vertex assigned to agent
+  void set_origin(graph::vertex_t origin) {
     origin_ = origin;
     status_ = 0;
     current_node_ = origin;
@@ -37,13 +37,17 @@ class Agent {
 
   //! Set destination
   //! \param[in] destination Destination vertex assigned to agent
-  void set_destination(graph::vertex_t destination) { destination_ = destination; }
+  void set_destination(graph::vertex_t destination) {
+    destination_ = destination;
+  }
   //! Get destination
   graph::vertex_t get_destination() const { return destination_; }
 
   //! Set departure_time
   //! \param[in] departure_time Departure time of an agent
-  void set_departure_time(graph::weight_t departure_time) { departure_time_ = departure_time; }
+  void set_departure_time(graph::weight_t departure_time) {
+    departure_time_ = departure_time;
+  }
   //! Get departure time
   graph::weight_t get_departure_time() const { return departure_time_; }
 
@@ -93,7 +97,7 @@ class Agent {
   std::vector<abm::graph::vertex_t> path_;
 
   //! status: 0: haven't started routing. 1: en_route. 2: arrived.
-  int status_{std::numeric_limits<int>::max()}; 
+  int status_{std::numeric_limits<int>::max()};
 };
 
 }  // namespace abm
