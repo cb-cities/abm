@@ -130,11 +130,14 @@ bool abm::Graph::read_graph_osm(const std::string& filename) {
     in.read_header(io::ignore_extra_column, "uniqueid", "u", "v", "length");
     abm::graph::vertex_t edgeid, v1, v2;
     abm::graph::weight_t weight;
-    abm::graph::vertex_t nvertices = 0;
+    unsigned nvertices = 0;
+    std::set<abm::graph::vertex_t> vertices;
     while (in.read_row(edgeid, v1, v2, weight)) {
       this->add_edge(v1, v2, weight, edgeid);
-      ++nvertices;
+      vertices.insert(v1);
+      vertices.insert(v2);
     }
+    nvertices = vertices.size();
     this->assign_nvertices(nvertices);
     std::cout << "Graph summary #edges: " << this->edges_.size()
               << " #vertices: " << this->nvertices_ << "\n";
@@ -274,10 +277,9 @@ std::vector<abm::graph::vertex_t> abm::Graph::dijkstra_vertices_ual(
 
   std::vector<abm::graph::vertex_t> route_vertices;
   if (path.size() > 0) {
-    for (auto itr = path.begin(); itr != path.end(); ++itr) {
-      if (itr != path.end())
-        route_vertices.emplace_back(static_cast<abm::graph::vertex_t>(*itr));
-    }
+    for (auto itr = path.begin(); itr != path.end(); ++itr)
+      route_vertices.emplace_back(static_cast<abm::graph::vertex_t>(*itr));
+
     route_vertices.emplace_back(-1);
   }
   return route_vertices;
