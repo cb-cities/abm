@@ -111,13 +111,14 @@ class Graph {
   //! \param[in] path Edges of the path from source to destination
   //! \retval cost Cost of traversed path
   abm::graph::weight_t path_cost(const std::vector<graph::vertex_t>& path);
-  
+
   //! Edge cost
   //! \param[in] v0 Start vertex of an edge
   //! \param[in] v1 End vertex of the same edge
   //! \retval cost Weight of an edge
-  abm::graph::weight_t get_edge_cost(graph::vertex_t v0, graph::vertex_t v1) { 
-      return (this->edges_.at(std::make_tuple(v0, v1)))->second; }
+  abm::graph::weight_t get_edge_cost(graph::vertex_t v0, graph::vertex_t v1) {
+    return (this->edges_.at(std::make_tuple(v0, v1)))->second;
+  }
 
  private:
   //! Assign number of vertices
