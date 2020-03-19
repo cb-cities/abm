@@ -275,9 +275,7 @@ std::vector<abm::graph::vertex_t> abm::Graph::dijkstra_vertices_ual(
   std::vector<abm::graph::vertex_t> route_vertices;
   if (path.size() > 0) {
     for (auto itr = path.begin(); itr != path.end(); ++itr) {
-      if (itr != path.end())
-        route_vertices.emplace_back(static_cast<abm::graph::vertex_t>(*itr));
-    }
+      route_vertices.emplace_back(static_cast<abm::graph::vertex_t>(*itr));
     route_vertices.emplace_back(-1);
   }
   return route_vertices;
