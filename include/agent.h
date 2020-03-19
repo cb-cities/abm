@@ -14,7 +14,7 @@ namespace abm {
 class Agent {
  public:
   //! Construct an agent class
-  //! \param[in] graph Defines the graph that the agent does routing on
+  //! \param[in] graph Pass a reference of the graph that the agent does routing on
   explicit Agent(const std::shared_ptr<abm::Graph>& graph) : graph_{graph} {};
 
   //! Set origin and initialize current node to origin
