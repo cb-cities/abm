@@ -1,3 +1,6 @@
+# vs configuration code
+.vscode/
+
 # Temporary files
 *~*
 *#*
