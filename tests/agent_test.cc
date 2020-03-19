@@ -46,8 +46,8 @@ TEST_CASE("Agent class is checked", "[agent]") {
                                                         // node is the origin
     REQUIRE(test_agent->get_status() == 0);  // At first, the agent status is 0
                                              // "waiting to depart"
-    test_agent->compute_agent_path();
-    // test_agent -> print_agent_path(); // (1, 2, w=1.5) (2, 4, w=5.5) (4, 3,
+    test_agent->compute_path();
+    // test_agent -> print_path(); // (1, 2, w=1.5) (2, 4, w=5.5) (4, 3,
     // w=0.2)
 
     // Check agent position after 2 units of cost

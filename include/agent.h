@@ -20,10 +20,10 @@ class Agent {
   explicit Agent(const std::shared_ptr<abm::Graph>& graph) : graph_{graph} {};
 
   //! Set id
-  //! \param[in] agent_id Agent id assigned to the agent object
-  void set_id(graph::vertex_t agent_id) { agent_id_ = agent_id; }
+  //! \param[in] id Agent id assigned to the agent object
+  void set_id(graph::vertex_t id) { id_ = id; }
   //! Get id
-  graph::vertex_t get_id() const { return agent_id_; }
+  graph::vertex_t get_id() const { return id_; }
 
   //! Set origin and initialize status to wait for departure, current node to origin
   //! \param[in] origin Origin vertex assigned to agent
@@ -56,14 +56,14 @@ class Agent {
   int get_status() const { return status_; }
 
   //! Compute path based on current node and destination
-  void compute_agent_path();
+  void compute_path();
 
   //! Get path
   //! \retval Return path from current node to destination as a list of vertices
-  std::vector<abm::graph::vertex_t> get_agent_path() { return path_; }
+  std::vector<abm::graph::vertex_t> get_path() { return path_; }
 
   //! Print path
-  void print_agent_path();
+  void print_path();
 
   //! Move agent, update current_node_, path_ and status_ of the agent object
   //! \param[in] time_limit The time that sets the limit on the total weights of
@@ -72,7 +72,7 @@ class Agent {
 
  private:
   //! Agent id
-  graph::vertex_t agent_id_{std::numeric_limits<graph::vertex_t>::max()};
+  graph::vertex_t id_{std::numeric_limits<graph::vertex_t>::max()};
 
   //! Agent origin vertex
   graph::vertex_t origin_{std::numeric_limits<graph::vertex_t>::max()};
@@ -81,7 +81,7 @@ class Agent {
   graph::vertex_t destination_{std::numeric_limits<graph::vertex_t>::max()};
 
   //! Agent departure time
-  graph::weight_t departure_time_{std::numeric_limits<graph::vertex_t>::max()};
+  graph::weight_t departure_time_{std::numeric_limits<graph::weight_t>::max()};
 
   //! Agent current node
   graph::vertex_t current_node_{std::numeric_limits<graph::vertex_t>::max()};
@@ -93,7 +93,7 @@ class Agent {
   std::vector<abm::graph::vertex_t> path_;
 
   //! status: 0: haven't started routing. 1: en_route. 2: arrived.
-  int status_{std::numeric_limits<graph::vertex_t>::max()}; 
+  int status_{std::numeric_limits<int>::max()}; 
 };
 
 }  // namespace abm

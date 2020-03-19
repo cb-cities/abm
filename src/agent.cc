@@ -5,7 +5,7 @@
 #include "graph.h"
 
 // Compute path from the current_node_ to destination_
-void abm::Agent::compute_agent_path() {
+void abm::Agent::compute_path() {
   // dijkstra function returns a list of vertices
   const auto path = graph_->dijkstra(current_node_, destination_);
   this->path_ = path;
@@ -13,7 +13,7 @@ void abm::Agent::compute_agent_path() {
 
 // Print path in the format of (start_of_edge, end_of_edge, w=weight_of_edge),
 // (s, e, w=), ...
-void abm::Agent::print_agent_path() {
+void abm::Agent::print_path() {
   if (path_.size() > 0) {
     for (auto itr = path_.begin(); itr != path_.end() - 1; ++itr) {
       auto nitr = itr + 1;
