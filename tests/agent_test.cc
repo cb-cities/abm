@@ -20,16 +20,19 @@ TEST_CASE("Agent class is checked", "[agent]") {
     auto test_agent = std::make_unique<abm::Agent>(graph);
 
     // Parameters to be assigned to the test agent
+    abm::graph::vertex_t agent_id = 100;
     abm::graph::vertex_t origin = 1;
     abm::graph::vertex_t destination = 3;
     abm::graph::weight_t departure_time = 0;
 
     // Assign agent parameters
+    test_agent -> set_id(agent_id);
     test_agent -> set_origin(origin);
     test_agent -> set_destination(destination);
     test_agent -> set_departure_time(departure_time);
 
     // Check assigned values
+    REQUIRE(test_agent -> get_id() == agent_id);
     REQUIRE(test_agent -> get_origin() == origin);
     REQUIRE(test_agent -> get_destination() == destination);
     REQUIRE(test_agent -> get_departure_time() == departure_time);

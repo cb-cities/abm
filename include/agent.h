@@ -10,12 +10,18 @@
 
 namespace abm {
 
-//! Agent class that has origin, destination, departure time, current node and compute path from current node to destination.
+//! Agent class that has id, origin, destination, departure time, current node and compute path from current node to destination.
 class Agent {
  public:
   //! Construct an agent class
   //! \param[in] graph Pass a reference of the graph that the agent does routing on
   explicit Agent(const std::shared_ptr<abm::Graph>& graph) : graph_{graph} {};
+
+  //! Set id 
+  //! \param[in] agent_id Agent id assigned to the agent object
+  void set_id(graph::vertex_t agent_id) { this->agent_id_ = agent_id; }
+  //! Get id
+  graph::vertex_t get_id() const { return agent_id_; }
 
   //! Set origin and initialize current node to origin
   //! \param[in] origin Origin vertex assigned to agent
@@ -60,6 +66,9 @@ class Agent {
   void move_agent(graph::weight_t time_limit);
 
  private:
+  //! Agent id
+  graph::vertex_t agent_id_{0};
+
   //! Agent origin vertex
   graph::vertex_t origin_{0};
 
