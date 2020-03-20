@@ -4,11 +4,13 @@
 #include <memory>
 #include <vector>
 
-#include "agent.h"
 #include "config.h"
 #include "graph.h"
 
 namespace abm {
+
+//! status class
+enum class Status { YETTODEPART, ENROUTE, ARRIVED };
 
 //! Agent class that has id, origin, destination, departure time, current node
 //! and compute path from current node to destination.
@@ -23,28 +25,27 @@ class Agent {
                  const graph::vertex_t& destination)
       : id_{id}, origin_{origin}, destination_{destination} {};
 
-  //! Get and set id
+  //! Return agent id
   graph::vertex_t id() const { return id_; }
 
-  //! Get and set origin
+  //! Return origin id
   graph::vertex_t origin() const { return origin_; }
 
-  //! Get and set destination
+  //! Return destination id
   graph::vertex_t destination() const { return destination_; }
 
-  //! Get and set departure time
+  //! Return departure time
   double departure_time() const { return departure_time_; }
-  void departure_time(const double departure_time) {
+  //! Assign departure time
+  void departure_time(double departure_time) {
     departure_time_ = departure_time;
   }
 
-  // Get current node
+  // Return current node id
   graph::vertex_t current_node() const { return current_node_; }
 
-  //! status: 0: haven't started routing. 1: en_route. 2: arrived.
-  enum class Status { PREDEPART, ENROUTE, ARRIVE };
-  //! Get status
-  //! \retval Status of the agent. 0: waiting to depart; 1: enroute; 2: reached
+  //! Return agent status
+  //! \retval Status of the agent.
   //! destination.
   Status status() const { return status_; }
 
@@ -64,8 +65,8 @@ class Agent {
   //! Agent current node
   graph::vertex_t current_node_{std::numeric_limits<graph::vertex_t>::max()};
 
-  //! status: 0: haven't started routing. 1: en_route. 2: arrived.
-  Status status_;
+  //! Agent status
+  Status status_{Status::YETTODEPART};
 };
 
 }  // namespace abm
