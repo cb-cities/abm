@@ -23,11 +23,13 @@ inline void abm::Graph::add_edge(
   // Add edge id
   if (edgeid == std::numeric_limits<abm::graph::vertex_t>::max()) {
     edge_ids_[std::make_tuple(vertex1, vertex2)] = this->edgeid_;
+    edge_ends_[this->edgeid_] = {vertex1, vertex2};
     // Add edge cost
     edge_costs_[this->edgeid_] = weight;
     this->edgeid_ += 1;
   } else {
     edge_ids_[std::make_tuple(vertex1, vertex2)] = edgeid;
+    edge_ends_[edgeid] = {vertex1, vertex2};
     // Add edge cost
     edge_costs_[edgeid] = weight;
   }
@@ -141,6 +143,34 @@ bool abm::Graph::read_graph_osm(const std::string& filename) {
     this->assign_nvertices(nvertices);
     std::cout << "Graph summary #edges: " << this->edges_.size()
               << " #vertices: " << this->nvertices_ << "\n";
+
+  } catch (std::exception& exception) {
+    std::cout << "Read OSM file: " << exception.what() << "\n";
+    status = false;
+  }
+
+  return status;
+}
+
+// Read MatrixMarket graph file format
+bool abm::Graph::read_graph_csv(const std::string& filename) {
+  bool status = true;
+  try {
+    io::CSVReader<4, io::trim_chars<' '>, io::double_quote_escape<',','\"'>> in(filename);
+    in.read_header(io::ignore_extra_column, "edge_id_igraph", "start_igraph", "end_igraph", "fft");
+    abm::graph::vertex_t edgeid, v1, v2;
+    abm::graph::weight_t weight;
+    unsigned nvertices = 0;
+    std::set<abm::graph::vertex_t> vertices;
+    while (in.read_row(edgeid, v1, v2, weight)) {
+      this->add_edge(v1, v2, weight, edgeid);
+      vertices.insert(v1);
+      vertices.insert(v2);
+    }
+    nvertices = vertices.size();
+    this->assign_nvertices(nvertices);
+    // std::cout << "Graph summary #edges: " << this->edges_.size()
+              // << " #vertices: " << this->nvertices_ << "\n";
 
   } catch (std::exception& exception) {
     std::cout << "Read OSM file: " << exception.what() << "\n";
@@ -318,4 +348,35 @@ abm::graph::weight_t abm::Graph::path_cost(
   abm::graph::weight_t cost = 0.;
   for (const auto& edge : path) cost += edge_costs_.at(edge);
   return cost;
+}
+
+// Truncated path based on cost
+std::vector<abm::graph::vertex_t> abm::Graph::dijkstra_edges_with_limit(
+    abm::graph::vertex_t source, abm::graph::vertex_t destination, abm::graph::weight_t weight_limit) {
+
+  const auto path = this->dijkstra(source, destination);
+
+  std::vector<abm::graph::vertex_t> route_edges;
+  abm::graph::weight_t weight_cumulator = 0;
+  abm::graph::vertex_t edge_id;
+  if (path.size() > 0) {
+    for (auto itr = path.begin(); itr != path.end() - 1; ++itr) {
+      auto nitr = itr + 1;
+      if ((itr != path.end()) && (weight_cumulator < weight_limit)) {
+        try {
+          edge_id = edge_ids_.at(std::make_tuple(*itr, *nitr));
+        } catch (std::exception& exception) {
+          std::cout << "Path with limit catches exception: " << exception.what() << " nodes " << *itr << " " << *nitr << " source " << source << " destination " << destination << "\n";
+        }
+        route_edges.emplace_back(edge_id);
+        weight_cumulator += edge_costs_.at(edge_id);
+      }
+    }
+  }
+  return route_edges;
+}
+
+// Get edge nodes
+std::array<abm::graph::vertex_t, 2> abm::Graph::get_edge_ends(abm::graph::vertex_t edgeid) {
+  return this->edge_ends_[edgeid];
 }

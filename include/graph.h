@@ -72,6 +72,7 @@ class Graph {
   //! \param[in] filename Name of input MatrixMarket file
   //! \retval status File read status
   bool read_graph_osm(const std::string& filename);
+  bool read_graph_csv(const std::string& filename);
 
   //! Compute the shortest path using priority queue
   //! \param[in] source ID of source vertex1
@@ -100,6 +101,10 @@ class Graph {
   //! \retval route_edges Edges of the route from source to destination
   std::vector<graph::vertex_t> dijkstra_edges(graph::vertex_t source,
                                               graph::vertex_t destination);
+  std::vector<graph::vertex_t> dijkstra_edges_with_limit(
+                                              graph::vertex_t source, 
+                                              graph::vertex_t destination, 
+                                              graph::weight_t weight_limit);
 
   //! Path cost from edge ids
   //! \param[in] path Vertices of the path from source to destination
@@ -111,6 +116,9 @@ class Graph {
   //! \param[in] path Edges of the path from source to destination
   //! \retval cost Cost of traversed path
   abm::graph::weight_t path_cost(const std::vector<graph::vertex_t>& path);
+
+  // Get edge end vertex ids
+  std::array<abm::graph::vertex_t, 2> get_edge_ends(abm::graph::vertex_t edgeid);
 
  private:
   //! Assign number of vertices
@@ -138,6 +146,9 @@ class Graph {
       edge_ids_;
   // Vertices and counts
   tsl::robin_map<graph::vertex_t, graph::weight_t> edge_costs_;
+  // Get edge end vertices
+  std::map<graph::vertex_t, std::array<graph::vertex_t, 2>>
+      edge_ends_;
 };
 
 }  // namespace abm

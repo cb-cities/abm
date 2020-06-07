@@ -1,3 +1,6 @@
+### input output data
+*.csv
+
 # vs configuration code
 .vscode/
 

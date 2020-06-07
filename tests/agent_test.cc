@@ -13,7 +13,7 @@ TEST_CASE("Agent class is checked", "[agent]") {
     abm::graph::vertex_t agent_id = 100;
     abm::graph::vertex_t origin = 1;
     abm::graph::vertex_t destination = 3;
-    abm::graph::weight_t departure_time = 0;
+    double departure_time = 0;
 
     SECTION("Initialization with id") {
       // Create test agent
