@@ -7,7 +7,7 @@
 
 #include "graph.h"
 // #include "router.h"
-#include "router_hybrid.h"
+#include "router_mpi.h"
 
 int main(int argc, char** argv) {
 
@@ -26,34 +26,25 @@ int main(int argc, char** argv) {
   if (myrank == 0) {
     std::cout << "graph has " << graph->nedges() << " edges, " << graph->nvertices() << " vertices" << std::endl;
   }
-  auto ag = std::make_unique<abm::Router_hybrid>(graph);
+  auto ag = std::make_unique<abm::Router_mpi>(graph);
   int nagents = 5000;
-  ag->read_timed_od_pairs("../osm/tokyo_demands_0.csv", nagents);
 
   MPI_Barrier(MPI_COMM_WORLD);
   double time_start = MPI_Wtime();
+  if (myrank == 0){
+    ag->read_timed_od_pairs("../osm/tokyo_demands_0.csv", nagents);
+    ag->master(nproc, myrank, nagents);
+  } else {
+    ag->worker(nproc, myrank, nagents);
+  }
+  MPI_Barrier(MPI_COMM_WORLD);
+  double time_end = MPI_Wtime();
 
-  for (int hour=3; hour<4; ++hour) {
-    for (int quarter=0; quarter<1; ++quarter){
-      ag->router(hour, quarter);
-    }
+  MPI_Finalize();
+  if (myrank == 0) {
+    std::cout << "run time is " << time_end - time_start << std::endl;
   }
   return 0;
-
-  // if (myrank == 0){
-  //   ag->read_timed_od_pairs("../osm/tokyo_demands_0.csv", nagents);
-  //   ag->master(nproc, myrank, nagents);
-  // } else {
-  //   ag->worker(nproc, myrank, nagents);
-  // }
-  // MPI_Barrier(MPI_COMM_WORLD);
-  // double time_end = MPI_Wtime();
-
-  // MPI_Finalize();
-  // if (myrank == 0) {
-  //   std::cout << "run time is " << time_end - time_start << std::endl;
-  // }
-  // return 0;
 }
 
 // int main_2(int argc, char** argv) {

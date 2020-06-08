@@ -61,7 +61,7 @@ SET(abm_src
   ${abm_SOURCE_DIR}/src/graph.cc
   ${abm_SOURCE_DIR}/src/router.cc
   ${abm_SOURCE_DIR}/src/agent.cc
-  ${abm_SOURCE_DIR}/src/router_mpi.cc
+  ${abm_SOURCE_DIR}/src/router_hybrid.cc
 )
 
 add_executable(abm ${abm_src} ${abm_SOURCE_DIR}/src/main.cc)
