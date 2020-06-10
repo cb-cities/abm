@@ -63,7 +63,7 @@ void abm::Router_hybrid::make_timed_od_map (bool print_od_map, int npagents, int
   MPI_Datatype mpi_od;
   MPI_Type_vector(4, 1, 1, MPI_LONG_LONG_INT, &mpi_od);
   MPI_Type_commit(&mpi_od);
-  MPI_Scatterv((this->input_ods_).data(), sendcounts, displs, mpi_od, partial_ods.data(), 1000, mpi_od, 0, MPI_COMM_WORLD );
+  MPI_Scatterv((this->input_ods_).data(), sendcounts, displs, mpi_od, partial_ods.data(), npagents, mpi_od, 0, MPI_COMM_WORLD );
   MPI_Type_free( &mpi_od );
   std::cout << "Rank " << myrank << " assigned " << partial_ods.size() << " od pairs out of " << (this->input_ods_).size() << " 100th element " << partial_ods.at(100)[2] << " 2000th element " << partial_ods.at(999)[2] << std::endl;
 
@@ -150,69 +150,115 @@ void abm::Router_hybrid::make_timed_od_map (bool print_od_map, int npagents, int
 //   this->partial_timed_od_pairs_.clear();
 // }
 
-void abm::Router_hybrid::router (int hour, int quarter, int npagents, int myrank) {
+void reduce_edge_vol(
+  std::array<abm::graph::vertex_t, 2> *one_path_volume_for_reduce,
+  std::vector<std::array<abm::graph::vertex_t, 2>> *path_volume_collected,
+  int *len, MPI_Datatype *dtype) {
+
+    (*path_volume_collected).emplace_back(*one_path_volume_for_reduce);
+
+  }
+
+void abm::Router_hybrid::router (int hour, int quarter, int npagents, int myrank, int nproc) {
 
   std::vector<std::array<abm::graph::vertex_t, 2>> quarter_od;
+  if (myrank==0) {
+    std::cout << "hour " << hour << " quarter " << quarter << " on rank " << myrank << std::endl;
+  }
   quarter_od.reserve(npagents);
   quarter_od = this->partial_timed_od_pairs_[hour][quarter];
   std::array<abm::graph::vertex_t, 2> od;
-  // if (myrank==1) {
-  //   std::cout << "hour " << hour << " quarter " << quarter << " routing " << quarter_od.size() << " on rank " << myrank << std::endl;
-  // }
-  // std::cout << "hour " << hour << " quarter " << quarter << " routing " << quarter_od.size() << " on rank " << myrank << std::endl;
+  if (myrank==0) {
+    std::cout << "hour " << hour << " quarter " << quarter << " routing " << quarter_od.size() << " on rank " << myrank << std::endl;
+  }
 
-  int quarter_od_routed, quarter_od_routed_for_reduce, mm;
-  quarter_od_routed = 0;
-  int s = omp_get_max_threads();
-  std::map<int, int> count;
+  int quarter_od_routed=0, quarter_od_routed_for_reduce=0, imm=1, mm=0;
+  int t, s = omp_get_max_threads();
+  abm::graph::vertex_t sp_last_node;
+  std::array<abm::graph::vertex_t, 4> one_residual_od;
+  std::map<int, int> count, arrival;
   std::map<int, std::vector<abm::graph::vertex_t>> path_collection; // {thread_id: [edge1, edge2, ...]}
-  std::map<int, std::vector<std::array<abm::graph::vertex_t, 2>>> residual_od; // {thread_id: [(o1,d1), (o2,d2), ...]}
-  std::vector<std::array<abm::graph::vertex_t, 2>> residual_od_list;
-  std::map<abm::graph::vertex_t, abm::graph::vertex_t> path_volume; //{edge1: edge1_count, edge2: edge2_count, ...}
-  MPI_Request sum_request;
-  int sum_flag=1;
-  MPI_Status  sum_status;
+  std::map<int, std::vector<std::array<abm::graph::vertex_t, 4>>> residual_od; // {thread_id: [(o1,d1), (o2,d2), ...]}
+  std::vector<std::array<abm::graph::vertex_t, 2>> residual_od_list, path_volume_for_reduce, path_volume_collected;
+  path_volume_for_reduce.reserve(npagents*1000);
+  path_volume_collected.reserve(npagents*1000);
+  path_volume_collected.resize(1);
+  std::array<abm::graph::vertex_t, 2> one_edge_vol;
+  std::map<abm::graph::vertex_t, abm::graph::vertex_t> path_volume, path_volume_for_update; //{edge1: edge1_count, edge2: edge2_count, ...}
+  // path_volume.reserve((this->graph_)->nedges());
+  // path_volume_for_reduce.reserve((this->graph_)->nedges());
+  // path_volume_collected.reserve((this->graph_)->nedges());
+  // path_volume_for_reduce.resize(0);
+  // path_volume_collected.resize(0);
+  int cum_displs, recvcounts[nproc], displs[nproc];
+
+  MPI_Request sum_request, edge_vol_request;
+  int sum_flag=1, edge_vol_flag=1;
+  MPI_Status  sum_status, edge_vol_status;
+
+  MPI_Datatype mpi_edge_vol;
+  MPI_Type_vector(2, 1, 1, MPI_LONG_LONG_INT, &mpi_edge_vol);
+  MPI_Type_commit(&mpi_edge_vol);
+  // struct edge_vol {abm::graph::vertex_t e; abm::graph::vertex_t v;} e_v;
+  // int ev_lengths[2] = {1, 1};
+  // MPI_Aint ev_offsets[2] = {offsetof(edge_vol, e), offsetof(edge_vol, v)};
+  // MPI_Datatype ev_types[2] = {MPI_LONG_LONG_INT, MPI_LONG_LONG_INT};
+  // MPI_Datatype mpi_edge_vol;
+  // MPI_Type_struct(2, ev_lengths, ev_offsets, ev_types, &mpi_edge_vol);
+  // MPI_Type_commit(&mpi_edge_vol);
+
+  MPI_Op mpi_reduce_edge_vol_op;
+  MPI_Op_create((MPI_User_function *)reduce_edge_vol, 1, &mpi_reduce_edge_vol_op);
+
   for (int t=0; t<s; t++) {
     count[t]=0;
+    arrival[t]=0;
     path_collection[t].reserve((this->graph_)->nedges()*5);
     residual_od[t].reserve(npagents);
   }
   residual_od_list.reserve(npagents*10);
 
-  // while (quarter_od_routed < std::min(500,static_cast<int>(quarter_od.size()*0.5)))
-  while (quarter_od_routed < 100000)
+  if (myrank==0) {
+    std::cout << " Before while loop: rank " << myrank << " quarter od routed " << quarter_od_routed << " limit " << quarter_od.size() << " quarter " << quarter << std::endl;
+  }
+  while (quarter_od_routed < static_cast<int>(quarter_od.size()))
+  // while (quarter_od_routed < 100000)
   {
-    // std::cout << " rank " << myrank << " before omp quarter od routed " << quarter_od_routed << " limit " << std::min(500,static_cast<int>(quarter_od.size()*0.5)) << " quarter " << quarter << std::endl;
+    if (myrank==0) {
+      std::cout << " While loop: rank " << myrank << " quarter od routed " << quarter_od_routed << " limit " << quarter_od.size() << " quarter " << quarter << std::endl;
+    }
 
-    #pragma omp parallel for
-    // for (unsigned int i=0; i<std::min(1000, static_cast<int>(quarter_od.size()-quarter_od_routed)); i++)
-    for (unsigned int i=0; i<1000; i++)
+    #pragma omp parallel for private(t, od, sp_last_node, one_residual_od)
+    for (unsigned int i=0; i<std::min(1000, static_cast<int>(quarter_od.size()-quarter_od_routed)); i++)
+    // for (unsigned int i=0; i<1000; i++)
     {
-      int t = omp_get_thread_num();
-      // od = quarter_od[quarter_od_routed+i];
-      // auto sp = graph_->dijkstra_edges_with_limit(od[0], od[1], 15*60);
+      t = omp_get_thread_num();
+      od = quarter_od[quarter_od_routed+i];
+      auto sp = graph_->dijkstra_edges_with_limit(od[0], od[1], 15*60);
       // total_cost += graph_->path_cost(sp);
-      // path_collection[t].insert(std::end(path_collection[t]), std::begin(sp), std::end(sp));
-      // sp_last_node = graph_->get_edge_ends(sp.back())[1];
+      path_collection[t].insert(std::end(path_collection[t]), std::begin(sp), std::end(sp));
+      sp_last_node = graph_->get_edge_ends(sp.back())[1];
       // std::cout << " end at " << sp_last_node << " " << sp.back() << std::endl;
-      // if (sp_last_node != od[2]){
-      //   one_residual_od = {od[0] + 1, sp_last_node, od[2]};
-      //   residual_od[t].emplace_back(one_residual_od);
-      // } else {
-      //   arrival[t]++;
-      // }
+      if (sp_last_node != od[1]){
+        one_residual_od = {(int)(hour+quarter+1)/4, (hour+quarter+1)%4, sp_last_node, od[1]};
+        residual_od[t].emplace_back(one_residual_od);
+      } else {
+        arrival[t]++;
+      }
       count[t]++;
     } 
-    // std::cout << " rank " << myrank << " count 0 " << count[0] << " quarter " << quarter << std::endl;
+    if (myrank==0) {
+      std::cout << " After OMP: rank " << myrank << " quarter od routed " << quarter_od_routed << " limit " << quarter_od.size() << " quarter " << quarter << std::endl;
+    }
 
     for (int t=0; t<s; t++) {
-      // for (auto itr=path_collection[t].begin(); itr != path_collection[t].end(); ++itr) {
-      //   if (this->path_volume.find((*itr)) == path_volume.end()) {
-      //     this->path_volume[(*itr)] = 1;
-      //   }
-      //   this->path_volume[(*itr)] += 1;
-      // }
-      // path_collection[t].clear();
+      for (auto itr=path_collection[t].begin(); itr != path_collection[t].end(); ++itr) {
+        if (path_volume.find((*itr)) == path_volume.end()) {
+          path_volume[(*itr)] = 1;
+        }
+        path_volume[(*itr)] += 1;
+      }
+      path_collection[t].clear();
 
       // for (auto itr=residual_od[t].begin(); itr != residual_od[t].end(); ++itr) {
       //   residual_od_list.emplace_back({(*itr)[0], (*itr)[1]});
@@ -221,22 +267,60 @@ void abm::Router_hybrid::router (int hour, int quarter, int npagents, int myrank
       count[t] = 0;
     }
     if (myrank==0) {
-      std::cout << " rank " << myrank << " quarter od routed " << quarter_od_routed << " mm " << mm << " quarter " << quarter << std::endl;
+      std::cout << " Collect OMP: rank " << myrank << " quarter od routed " << quarter_od_routed << " limit " << quarter_od.size() << " quarter " << quarter << std::endl;
     }
 
-    // Ireduce
-    if (sum_flag) {
-      if (myrank==0) {
-        std::cout << " rank " << myrank << " test true quarter " << quarter << std::endl;
-      }
-      quarter_od_routed_for_reduce = quarter_od_routed;
-      MPI_Iallreduce(&quarter_od_routed_for_reduce, &mm, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD, &sum_request);
+    // path_volume_for_reduce.assign(path_volume.begin(), path_volume.end());
+    for( auto const& x : path_volume ) {
+      one_edge_vol = {x.first, x.second};
+      path_volume_for_reduce.emplace_back(one_edge_vol);
     }
-    MPI_Test(&sum_request, &sum_flag, &sum_status);
+    int path_vol_length = path_volume_for_reduce.size();
+    MPI_Allgather(&path_vol_length, 1, MPI_INT, &recvcounts, 1, MPI_INT, MPI_COMM_WORLD);
+    if (myrank==0) {
+      std::cout << " Gather length: rank " << myrank << " quarter od routed " << quarter_od_routed << " limit " << quarter_od.size() << " quarter " << quarter << std::endl;
+    }
+    displs[0] = 0;              // offsets into the global array
+    for (int i=1; i<nproc; i++) {
+      displs[i] = displs[i-1] + recvcounts[i-1];
+    }
+    MPI_Allgatherv(path_volume_for_reduce.data(), path_volume_for_reduce.size(), mpi_edge_vol, path_volume_collected.data(), recvcounts, displs, mpi_edge_vol, MPI_COMM_WORLD);
+    if (myrank==0) {
+      std::cout << " Gather volume: rank " << myrank << " quarter od routed " << quarter_od_routed << " limit " << quarter_od.size() << " quarter " << quarter << std::endl;
+    }
+
+    // // Ireduce
+    // if (sum_flag && edge_vol_flag) {
+    //   if (myrank==0) {
+    //     std::cout << " rank " << myrank << " test true quarter " << quarter << std::endl;
+    //   }
+    //   quarter_od_routed_for_reduce = quarter_od_routed;
+    //   MPI_Iallreduce(&quarter_od_routed_for_reduce, &mm, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD, &sum_request);
+    //   // path_volume_for_reduce = path_volume;
+    //   for( auto const& x : path_volume ) {
+    //     one_edge_vol = {x.first, x.second};
+    //     path_volume_for_reduce.emplace_back(one_edge_vol);
+    //   }
+    //   // MPI_Iallreduce(path_volume_for_reduce.data(), path_volume_collected.data(), path_volume_for_reduce.size(), mpi_edge_vol, mpi_reduce_edge_vol_op, MPI_COMM_WORLD, &edge_vol_request);
+    //   for (int i = 0; i < nproc; i++) {
+    //     if (myrank==i) {
+    //       recvcounts[i] = path_volume_for_reduce.size();
+    //     }
+    //   }
+    //   displs[0] = 0;              // offsets into the global array
+    //   for (int i=1; i<nproc; i++) {
+    //     displs[i] = displs[i-1] + recvcounts[i-1];
+    //   }
+    //   MPI_Iallgatherv(path_volume_for_reduce.data(), path_volume_for_reduce.size(), mpi_edge_vol, path_volume_collected.data(), recvcounts, displs, mpi_edge_vol, MPI_COMM_WORLD, &edge_vol_request);
+    // }
+    // MPI_Test(&sum_request, &sum_flag, &sum_status);
+    // MPI_Test(&edge_vol_request, &edge_vol_flag, &edge_vol_status);
   }
   // blocking synchronize
-  quarter_od_routed_for_reduce = quarter_od_routed;
-  MPI_Allreduce(&quarter_od_routed_for_reduce, &mm, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+  // quarter_od_routed_for_reduce = quarter_od_routed;
+  MPI_Allreduce(&quarter_od_routed, &mm, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+  MPI_Type_free( &mpi_edge_vol );
+  MPI_Op_free( &mpi_reduce_edge_vol_op );
   if (myrank==0) {
     std::cout << " time step rank " << myrank << " hour " << hour << " quarter " << quarter << " mm  " << mm << std::endl;
   }

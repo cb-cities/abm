@@ -1,4 +1,4 @@
-# City-Scale Agent Based Modelling
+cmak# City-Scale Agent Based Modelling
 > CB-Cities
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/cb-cities/abm/develop/license.md)
@@ -25,3 +25,8 @@
 * Run `./abmtest -s` (for a verbose output) or `ctest -VV`.
 
 * Run `./abmtest -l` to see available test options
+
+## Debug on TACC
+
+* Run `mkdir debug && cd debug && cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=../Toolchain.cmake ..`
+* Follow [Arm DDT Debugger at TACC](https://portal.tacc.utexas.edu/tutorials/ddt)

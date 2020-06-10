@@ -23,7 +23,7 @@ class Router_hybrid {
     // void send_od_to_workers(int nproc, int myrank);
     // void master(int nproc, int myrank, int nagents);
     // void worker(int nproc, int myrank, int nagents);
-    void router(int hour, int quarter, int npagents, int myrank);
+    void router(int hour, int quarter, int npagents, int myrank, int nproc);
   
   private:
    std::shared_ptr<abm::Graph> graph_;

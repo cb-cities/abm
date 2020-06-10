@@ -10,6 +10,7 @@
 
 # Build directories
 build/*
+debug/*
 
 # Outputfiles
 bin/
