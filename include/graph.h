@@ -54,6 +54,7 @@ class Graph {
   //! \param[in] weight Weight of edge connecting vertex 1 and 2
   void update_edge(graph::vertex_t vertex1, graph::vertex_t vertex2,
                    graph::weight_t weight);
+  void update_edge_by_id(graph::vertex_t edge_id, graph::weight_t weight);
 
   //! Remove edge from graph
   //! \param[in] vertex1 ID of vertex1
@@ -119,6 +120,8 @@ class Graph {
 
   // Get edge end vertex ids
   std::array<abm::graph::vertex_t, 2> get_edge_ends(abm::graph::vertex_t edgeid);
+  // Get edge fft
+  abm::graph::weight_t get_edge_fft(abm::graph::vertex_t edge_id);
 
  private:
   //! Assign number of vertices
@@ -145,7 +148,9 @@ class Graph {
   std::map<std::tuple<graph::vertex_t, graph::vertex_t>, graph::vertex_t>
       edge_ids_;
   // Vertices and counts
-  tsl::robin_map<graph::vertex_t, graph::weight_t> edge_costs_;
+//   tsl::robin_map<graph::vertex_t, graph::weight_t> edge_costs_;
+  std::map<graph::vertex_t, graph::weight_t> edge_fft_;
+  std::map<graph::vertex_t, graph::vertex_t> edge_vol_;
   // Get edge end vertices
   std::map<graph::vertex_t, std::array<graph::vertex_t, 2>>
       edge_ends_;

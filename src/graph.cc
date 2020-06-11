@@ -8,9 +8,13 @@ inline void abm::Graph::add_edge(
         std::numeric_limits<abm::graph::vertex_t>::max()) {
   // Create a map of vertices
   if (vertices_.find(vertex1) == vertices_.end())
-    vertices_[vertex1] = vertices_.size();
+    vertices_[vertex1] = vertices_.size()-1;
   if (vertices_.find(vertex2) == vertices_.end())
-    vertices_[vertex2] = vertices_.size();
+    vertices_[vertex2] = vertices_.size()-1;
+  // std::cout << " vertex 1 " << vertex1 << " " << vertices_[vertex1]
+  //           << " vertex 2 " << vertex2 << " " << vertices_[vertex2]
+  //           << std::endl;
+  // exit(0);
 
   if (!this->directed_)
     if (vertex1 > vertex2) std::swap(vertex1, vertex2);
@@ -25,13 +29,13 @@ inline void abm::Graph::add_edge(
     edge_ids_[std::make_tuple(vertex1, vertex2)] = this->edgeid_;
     edge_ends_[this->edgeid_] = {vertex1, vertex2};
     // Add edge cost
-    edge_costs_[this->edgeid_] = weight;
+    edge_fft_[this->edgeid_] = weight;
     this->edgeid_ += 1;
   } else {
     edge_ids_[std::make_tuple(vertex1, vertex2)] = edgeid;
     edge_ends_[edgeid] = {vertex1, vertex2};
     // Add edge cost
-    edge_costs_[edgeid] = weight;
+    edge_fft_[edgeid] = weight;
   }
 
   // Vertex 1
@@ -54,6 +58,17 @@ void abm::Graph::update_edge(abm::graph::vertex_t vertex1,
                              abm::graph::vertex_t vertex2,
                              abm::graph::weight_t weight) {
   // Get pointer to specified edge connecting vertex 1 and 2
+  auto edge = edges_.at(std::make_tuple(vertex1, vertex2));
+  // Update edge weight
+  edge->second = weight;
+}
+
+// Update edge by edge_id
+void abm::Graph::update_edge_by_id(abm::graph::vertex_t edge_id,
+                             abm::graph::weight_t weight) {
+  // Get pointer to specified edge connecting vertex 1 and 2
+  abm::graph::vertex_t vertex1 = this->edge_ends_.at(edge_id).at(0);
+  abm::graph::vertex_t vertex2 = this->edge_ends_.at(edge_id).at(1);
   auto edge = edges_.at(std::make_tuple(vertex1, vertex2));
   // Update edge weight
   edge->second = weight;
@@ -169,8 +184,8 @@ bool abm::Graph::read_graph_csv(const std::string& filename) {
     }
     nvertices = vertices.size();
     this->assign_nvertices(nvertices);
-    // std::cout << "Graph summary #edges: " << this->edges_.size()
-              // << " #vertices: " << this->nvertices_ << "\n";
+    std::cout << "Graph summary #edges: " << this->edges_.size()
+              << " #vertices: " << this->nvertices_ << "\n";
 
   } catch (std::exception& exception) {
     std::cout << "Read OSM file: " << exception.what() << "\n";
@@ -230,12 +245,16 @@ std::vector<abm::graph::vertex_t> abm::Graph::dijkstra(
   // Insert source itself in priority queue & initialize its distance as 0.
   priority_queue.push(std::make_pair(0., source));
   distances[vertices_.at(source)] = 0.;
+  // std::cout << "Before while at " << source << " " << destination << std::endl;
 
   // Looping till priority queue becomes empty (or all
   // distances are not finalized)
   while (!priority_queue.empty()) {
     // {min_weight, vertex} sorted based on weights (distance)
     abm::graph::vertex_t u = priority_queue.top().second;
+    // if (u>696720) {
+    //   std::cout << "u " << u << " " << source << " " << destination << std::endl;
+    // }
     priority_queue.pop();
 
     // Break if destination is reached
@@ -245,6 +264,9 @@ std::vector<abm::graph::vertex_t> abm::Graph::dijkstra(
     for (const auto& edge : vertex_edges_[u]) {
       // Get vertex label and weight of neighbours of u.
       const abm::graph::vertex_t neighbour = edge->first.second;
+      // if (neighbour>696720) {
+      //   std::cout << "neighbour " << neighbour << " " << source << " " << destination << std::endl;
+      // }
       const abm::graph::weight_t weight = edge->second;
 
       // Distance from source to neighbour
@@ -252,6 +274,12 @@ std::vector<abm::graph::vertex_t> abm::Graph::dijkstra(
       // neighbour
       const abm::graph::vertex_t uidx = vertices_.at(u);
       const abm::graph::vertex_t nidx = vertices_.at(neighbour);
+      // if (uidx>696720) {
+      //   std::cout << "uidx " << uidx << " " << source << " " << destination << std::endl;
+      // }
+      // if (nidx>696720) {
+      //   std::cout << "nidx " << nidx << " neighbour " << neighbour << " " << source << " " << destination << std::endl;
+      // }
 
       const abm::graph::weight_t distance_u = distances.at(uidx) + weight;
       // If there is shorted path to neighbour vertex through u.
@@ -263,6 +291,7 @@ std::vector<abm::graph::vertex_t> abm::Graph::dijkstra(
       }
     }
   }
+  // std::cout << "After while at " << source << " " << destination << std::endl;
 
   path.emplace_back(destination);
   // Iterate until source has been reached
@@ -346,7 +375,11 @@ abm::graph::weight_t abm::Graph::path_cost(
 abm::graph::weight_t abm::Graph::path_cost(
     const std::vector<abm::graph::vertex_t>& path) {
   abm::graph::weight_t cost = 0.;
-  for (const auto& edge : path) cost += edge_costs_.at(edge);
+  for (const auto& edge_id : path) {
+    abm::graph::vertex_t vertex1 = this->edge_ends_.at(edge_id).at(0);
+    abm::graph::vertex_t vertex2 = this->edge_ends_.at(edge_id).at(1);
+    cost += (edges_.at(std::make_tuple(vertex1, vertex2)))->second;
+  }
   return cost;
 }
 
@@ -369,7 +402,10 @@ std::vector<abm::graph::vertex_t> abm::Graph::dijkstra_edges_with_limit(
           std::cout << "Path with limit catches exception: " << exception.what() << " nodes " << *itr << " " << *nitr << " source " << source << " destination " << destination << "\n";
         }
         route_edges.emplace_back(edge_id);
-        weight_cumulator += edge_costs_.at(edge_id);
+        // weight_cumulator += edge_costs_.at(edge_id);
+        abm::graph::vertex_t vertex1 = this->edge_ends_.at(edge_id).at(0);
+        abm::graph::vertex_t vertex2 = this->edge_ends_.at(edge_id).at(1);
+        weight_cumulator += (edges_.at(std::make_tuple(vertex1, vertex2)))->second;
       }
     }
   }
@@ -377,6 +413,11 @@ std::vector<abm::graph::vertex_t> abm::Graph::dijkstra_edges_with_limit(
 }
 
 // Get edge nodes
-std::array<abm::graph::vertex_t, 2> abm::Graph::get_edge_ends(abm::graph::vertex_t edgeid) {
-  return this->edge_ends_[edgeid];
+std::array<abm::graph::vertex_t, 2> abm::Graph::get_edge_ends(abm::graph::vertex_t edge_id) {
+  return this->edge_ends_.at(edge_id);
+}
+
+// Get edge fft
+abm::graph::weight_t abm::Graph::get_edge_fft(abm::graph::vertex_t edge_id) {
+  return this->edge_fft_.at(edge_id);
 }

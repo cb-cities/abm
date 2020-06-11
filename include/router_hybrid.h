@@ -18,7 +18,7 @@ class Router_hybrid {
                      int nagents = std::numeric_limits<int>::max());
     void make_timed_od_map(bool print_od_map, int npagents, int nproc, int myrank);
     // void make_edge_vol_map (std::vector<abm::graph::vertex_t>& path);
-    // void output_edge_vol_map (const std::string& output_filename);
+    void output_edge_vol_map (const std::string& output_filename);
     
     // void send_od_to_workers(int nproc, int myrank);
     // void master(int nproc, int myrank, int nagents);

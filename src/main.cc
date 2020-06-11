@@ -32,8 +32,8 @@ int main(int argc, char** argv) {
   }
   // read OD from rank 0 and scatter it into each rank
   auto ag = std::make_unique<abm::Router_hybrid>(graph);
-  int nagents = 50000;
-  int npagents = 20000;
+  int nagents = 500000;
+  int npagents = 240000;
   std::vector<std::array<abm::graph::vertex_t, 3>> all_od_pairs;
   if (myrank == 0) {
     ag->read_timed_od_pairs("../osm/tokyo_demands_0.csv", nagents);
@@ -47,8 +47,8 @@ int main(int argc, char** argv) {
 
   ag->make_timed_od_map(0, npagents, nproc, myrank);
 
-  for (int hour=3; hour!=4; ++hour) {
-    for (int quarter=0; quarter!=2; ++quarter){
+  for (int hour=3; hour!=20; ++hour) {
+    for (int quarter=0; quarter!=4; ++quarter){
       ag->router(hour, quarter, npagents, myrank, nproc);
       MPI_Barrier(MPI_COMM_WORLD);
     }
