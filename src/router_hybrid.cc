@@ -82,10 +82,12 @@ std::map<int, std::map<int, std::vector<std::array<abm::graph::vertex_t, 2>>>> a
 void abm::Router_hybrid::quarter_router (int hour, int quarter, int subp_agents, int myrank, int nproc) {
 
   std::vector<std::array<abm::graph::vertex_t, 2>> quarter_ods; // quarter_ods are from rank 0 and are to be scattered to each rank.
-  if (myrank==0)
-    quarter_ods = (this->input_ods_)[hour][quarter];
-
   int quarter_od_routed = 0, quarter_od_total;
+  if (myrank==0) {
+    quarter_ods = (this->input_ods_)[hour][quarter];
+    quarter_od_total = quarter_ods.size();
+  }
+
   MPI_Bcast(&quarter_od_total, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
   while (quarter_od_routed < quarter_od_total) {

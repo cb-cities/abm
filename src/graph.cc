@@ -11,10 +11,10 @@ inline void abm::Graph::add_edge(
     vertices_[vertex1] = vertices_.size()-1;
   if (vertices_.find(vertex2) == vertices_.end())
     vertices_[vertex2] = vertices_.size()-1;
-  std::cout << " vertex 1 " << vertex1 << " " << vertices_[vertex1]
-            << " vertex 2 " << vertex2 << " " << vertices_[vertex2]
-            << std::endl;
-  exit(0);
+  // std::cout << " vertex 1 " << vertex1 << " " << vertices_[vertex1]
+  //           << " vertex 2 " << vertex2 << " " << vertices_[vertex2]
+  //           << std::endl;
+  // exit(0);
 
   if (!this->directed_)
     if (vertex1 > vertex2) std::swap(vertex1, vertex2);
