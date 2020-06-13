@@ -7,10 +7,10 @@ inline void abm::Graph::add_edge(
     abm::graph::vertex_t edgeid =
         std::numeric_limits<abm::graph::vertex_t>::max()) {
   // Create a map of vertices
-  if (vertices_.find(vertex1) == vertices_.end())
-    vertices_[vertex1] = vertices_.size()-1;
-  if (vertices_.find(vertex2) == vertices_.end())
-    vertices_[vertex2] = vertices_.size()-1;
+  // if (vertices_.find(vertex1) == vertices_.end())
+  //   vertices_[vertex1] = vertices_.size();
+  // if (vertices_.find(vertex2) == vertices_.end())
+  //   vertices_[vertex2] = vertices_.size();
   // std::cout << " vertex 1 " << vertex1 << " " << vertices_[vertex1]
   //           << " vertex 2 " << vertex2 << " " << vertices_[vertex2]
   //           << std::endl;
@@ -252,9 +252,9 @@ std::vector<abm::graph::vertex_t> abm::Graph::dijkstra(
   while (!priority_queue.empty()) {
     // {min_weight, vertex} sorted based on weights (distance)
     abm::graph::vertex_t u = priority_queue.top().second;
-    // if (u>696720) {
-    //   std::cout << "u " << u << " " << source << " " << destination << std::endl;
-    // }
+    if (u>696720) {
+      std::cout << "u " << u << " " << source << " " << destination << std::endl;
+    }
     priority_queue.pop();
 
     // Break if destination is reached
@@ -264,9 +264,9 @@ std::vector<abm::graph::vertex_t> abm::Graph::dijkstra(
     for (const auto& edge : vertex_edges_[u]) {
       // Get vertex label and weight of neighbours of u.
       const abm::graph::vertex_t neighbour = edge->first.second;
-      // if (neighbour>696720) {
-      //   std::cout << "neighbour " << neighbour << " " << source << " " << destination << std::endl;
-      // }
+      if (neighbour>696720) {
+        std::cout << "neighbour " << neighbour << " " << source << " " << destination << std::endl;
+      }
       const abm::graph::weight_t weight = edge->second;
 
       // Distance from source to neighbour
@@ -274,12 +274,12 @@ std::vector<abm::graph::vertex_t> abm::Graph::dijkstra(
       // neighbour
       const abm::graph::vertex_t uidx = vertices_.at(u);
       const abm::graph::vertex_t nidx = vertices_.at(neighbour);
-      // if (uidx>696720) {
-      //   std::cout << "uidx " << uidx << " " << source << " " << destination << std::endl;
-      // }
-      // if (nidx>696720) {
-      //   std::cout << "nidx " << nidx << " neighbour " << neighbour << " " << source << " " << destination << std::endl;
-      // }
+      if (uidx>696720) {
+        std::cout << "uidx " << uidx << " " << source << " " << destination << std::endl;
+      }
+      if (nidx>696720) {
+        std::cout << "nidx " << nidx << " neighbour " << neighbour << " " << source << " " << destination << std::endl;
+      }
 
       const abm::graph::weight_t distance_u = distances.at(uidx) + weight;
       // If there is shorted path to neighbour vertex through u.

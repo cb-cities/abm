@@ -166,6 +166,7 @@ void abm::Router_hybrid::router (int hour, int quarter, int npagents, int myrank
       auto sp = graph_->dijkstra_edges_with_limit(od[0], od[1], 15*60);
       substep_allthread_edges[t].insert(std::end(substep_allthread_edges[t]), std::begin(sp), std::end(sp));
       substep_allthread_routed[t]++;
+      // std::cout << sp.back() << " " << graph_->get_edge_ends(sp.back()) << std::endl;
       abm::graph::vertex_t sp_last_node = graph_->get_edge_ends(sp.back())[1];
       if (sp_last_node != od[1]){
         std::array<abm::graph::vertex_t, 4> one_residual_od = {(int)(hour+quarter+1)/4, (hour+quarter+1)%4, sp_last_node, od[1]};
