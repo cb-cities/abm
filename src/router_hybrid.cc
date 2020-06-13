@@ -117,7 +117,7 @@ void abm::Router_hybrid::quarter_router (int hour, int quarter, int subp_agents,
     MPI_Type_vector(2, 1, 1, MPI_LONG_LONG_INT, &mpi_od);
     MPI_Type_commit(&mpi_od);
     MPI_Scatterv(quarter_ods.data(), sendcounts, senddispls, mpi_od, partial_ods.data(), sendcounts[myrank], mpi_od, 0, MPI_COMM_WORLD);
-    std::cout << "Rank " << myrank << " assigned " << partial_ods.size() << " od pairs out of " << quarter_od_total << " 1st element " << partial_ods[0][0] << std::endl;
+    std::cout << "H" << hour << "Q" << quarter << " rank " << myrank << " assigned " << partial_ods.size() << " od pairs out of " << quarter_od_total << " 1st element " << partial_ods[0][0] << std::endl;
 
     // route
     std::vector<std::array<abm::graph::vertex_t, 2>> substep_volume_vector = substep_router (myrank, partial_ods);
