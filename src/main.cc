@@ -32,34 +32,26 @@ int main(int argc, char** argv) {
   }
   // read OD from rank 0 and scatter it into each rank
   auto ag = std::make_unique<abm::Router_hybrid>(graph);
-  int nagents = 500000;
-  int npagents = 240000;
+  int nagents = 500000; // simulation demand
+  int subp_agents = 5000; // update graph after 5000 agents are assigned
   std::vector<std::array<abm::graph::vertex_t, 3>> all_od_pairs;
   if (myrank == 0) {
     ag->read_timed_od_pairs("../osm/tokyo_demands_0.csv", nagents);
   }
 
   MPI_Barrier(MPI_COMM_WORLD);
-  // int sub_avg=0;
-  // int *sub_avgs = (int *)malloc(sizeof(int) * nproc);
-  // MPI_Allgather(&sub_avg, 1, MPI_INT, sub_avgs, 1, MPI_INT, MPI_COMM_WORLD);
   double time_start = MPI_Wtime();
 
-  ag->make_timed_od_map(0, npagents, nproc, myrank);
+  // ag->make_timed_od_map(0, npagents, nproc, myrank);
 
   for (int hour=3; hour!=20; ++hour) {
     for (int quarter=0; quarter!=4; ++quarter){
-      ag->router(hour, quarter, npagents, myrank, nproc);
-      MPI_Barrier(MPI_COMM_WORLD);
+      ag->quarter_router(hour, quarter, subp_agents, myrank, nproc);
     }
   } 
   std::cout << " finish all time steps " << myrank << std::endl;
 
   MPI_Barrier(MPI_COMM_WORLD);
-  // std::cout << " pass barrier " << myrank << std::endl;
-  // int sub_avg2=0;
-  // int *sub_avgs2 = (int *)malloc(sizeof(int) * nproc);
-  // MPI_Allgather(&sub_avg2, 1, MPI_INT, sub_avgs2, 1, MPI_INT, MPI_COMM_WORLD);
   double time_end = MPI_Wtime();
 
   MPI_Finalize();

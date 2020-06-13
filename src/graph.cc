@@ -67,8 +67,8 @@ void abm::Graph::update_edge(abm::graph::vertex_t vertex1,
 void abm::Graph::update_edge_by_id(abm::graph::vertex_t edge_id,
                              abm::graph::weight_t weight) {
   // Get pointer to specified edge connecting vertex 1 and 2
-  abm::graph::vertex_t vertex1 = this->edge_ends_.at(edge_id).at(0);
-  abm::graph::vertex_t vertex2 = this->edge_ends_.at(edge_id).at(1);
+  abm::graph::vertex_t vertex1 = this->edge_ends_[edge_id][0];
+  abm::graph::vertex_t vertex2 = this->edge_ends_[edge_id][1];
   auto edge = edges_.at(std::make_tuple(vertex1, vertex2));
   // Update edge weight
   edge->second = weight;
@@ -376,8 +376,8 @@ abm::graph::weight_t abm::Graph::path_cost(
     const std::vector<abm::graph::vertex_t>& path) {
   abm::graph::weight_t cost = 0.;
   for (const auto& edge_id : path) {
-    abm::graph::vertex_t vertex1 = this->edge_ends_.at(edge_id).at(0);
-    abm::graph::vertex_t vertex2 = this->edge_ends_.at(edge_id).at(1);
+    abm::graph::vertex_t vertex1 = this->edge_ends_[edge_id][0];
+    abm::graph::vertex_t vertex2 = this->edge_ends_[edge_id][1];
     cost += (edges_.at(std::make_tuple(vertex1, vertex2)))->second;
   }
   return cost;
@@ -403,8 +403,8 @@ std::vector<abm::graph::vertex_t> abm::Graph::dijkstra_edges_with_limit(
         }
         route_edges.emplace_back(edge_id);
         // weight_cumulator += edge_costs_.at(edge_id);
-        abm::graph::vertex_t vertex1 = this->edge_ends_.at(edge_id).at(0);
-        abm::graph::vertex_t vertex2 = this->edge_ends_.at(edge_id).at(1);
+        abm::graph::vertex_t vertex1 = this->edge_ends_[edge_id][0];
+        abm::graph::vertex_t vertex2 = this->edge_ends_[edge_id][1];
         weight_cumulator += (edges_.at(std::make_tuple(vertex1, vertex2)))->second;
       }
     }
@@ -414,10 +414,10 @@ std::vector<abm::graph::vertex_t> abm::Graph::dijkstra_edges_with_limit(
 
 // Get edge nodes
 std::array<abm::graph::vertex_t, 2> abm::Graph::get_edge_ends(abm::graph::vertex_t edge_id) {
-  return this->edge_ends_.at(edge_id);
+  return this->edge_ends_[edge_id];
 }
 
 // Get edge fft
 abm::graph::weight_t abm::Graph::get_edge_fft(abm::graph::vertex_t edge_id) {
-  return this->edge_fft_.at(edge_id);
+  return this->edge_fft_[edge_id];
 }
