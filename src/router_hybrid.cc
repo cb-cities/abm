@@ -89,6 +89,7 @@ void abm::Router_hybrid::quarter_router (int hour, int quarter, int subp_agents,
   }
 
   MPI_Bcast(&quarter_od_total, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  quarter_ods.resize(quarter_od_total);
 
   while (quarter_od_routed < quarter_od_total) {
     
@@ -101,21 +102,22 @@ void abm::Router_hybrid::quarter_router (int hour, int quarter, int subp_agents,
     // scatter to each rank
     int substep_od_size_per_rank = (int)(substep_od_size/nproc);
     int sendcounts[nproc], senddispls[nproc];
-    for (int i = 0; i < nproc; i++) {
+    for (int i = 0; i < nproc; ++i) {
       sendcounts[i] = substep_od_size_per_rank;
       senddispls[i] = substep_od_size_per_rank*i;
     }
     // if cannot be distributed evenly among ranks
-    sendcounts[nproc] = substep_od_size - sendcounts[nproc-1];
+    if (nproc>0)
+      sendcounts[nproc] = substep_od_size - sendcounts[nproc-1];
     
     // each rank receives 
     std::vector<std::array<abm::graph::vertex_t, 2>> partial_ods;
     partial_ods.resize(sendcounts[myrank]);
     MPI_Datatype mpi_od;
-    MPI_Type_vector(2, 1, 1, MPI_LONG_LONG_INT, &mpi_od);
+    MPI_Type_vector(2, 1, 1, MPI_INT, &mpi_od);
     MPI_Type_commit(&mpi_od);
-    MPI_Scatterv(quarter_ods.data(), sendcounts, senddispls, mpi_od, partial_ods.data(), sendcounts[nproc], mpi_od, 0, MPI_COMM_WORLD);
-    std::cout << "Rank " << myrank << " assigned " << partial_ods.size() << " od pairs out of " << quarter_od_total << " 1st element " << partial_ods[0][0] << std::endl;
+    MPI_Scatterv(quarter_ods.data(), sendcounts, senddispls, mpi_od, partial_ods.data(), sendcounts[myrank], mpi_od, 0, MPI_COMM_WORLD);
+    std::cout << "H" << hour << "Q" << quarter << " rank " << myrank << " assigned " << partial_ods.size() << " od pairs out of " << quarter_od_total << " 1st element " << partial_ods[0][0] << std::endl;
 
     // route
     std::vector<std::array<abm::graph::vertex_t, 2>> substep_volume_vector = substep_router (myrank, partial_ods);
