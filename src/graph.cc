@@ -8,9 +8,9 @@ inline void abm::Graph::add_edge(
         std::numeric_limits<abm::graph::vertex_t>::max()) {
   // Create a map of vertices
   if (vertices_.find(vertex1) == vertices_.end())
-    vertices_[vertex1] = vertices_.size()-1;
+    vertices_[vertex1] = vertices_.size();
   if (vertices_.find(vertex2) == vertices_.end())
-    vertices_[vertex2] = vertices_.size()-1;
+    vertices_[vertex2] = vertices_.size();
   // std::cout << " vertex 1 " << vertex1 << " " << vertices_[vertex1]
   //           << " vertex 2 " << vertex2 << " " << vertices_[vertex2]
   //           << std::endl;
