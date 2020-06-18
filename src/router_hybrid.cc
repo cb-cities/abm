@@ -122,15 +122,17 @@ void abm::Router_hybrid::quarter_router (int hour, int quarter, int subp_agents,
     std::cout << "H" << hour << "Q" << quarter << " rank " << myrank << " assigned " << partial_ods.size() << " od pairs out of " << quarter_od_total << " 1st element " << partial_ods[0][0] << std::endl;
 
     // route
-    auto [substep_volume_vector, substep_residual_od] = substep_router (myrank, partial_ods);
+    auto substep_results = substep_router (myrank, partial_ods);
+    // substep_volume_vector = substep_results.Volume_Vector;
+    // substep_residual_od = substep_results.Residual_Od_Vector;
     // std::vector<std::array<abm::graph::vertex_t, 2>> substep_volume_vector = substep_router (myrank, partial_ods);
 
     // Determine total numbers of edge-volume pairs received from each rank
     int recvcounts[nproc], recvdispls[nproc]; // related to gatherv of edge volume from each rank
-    int substep_volume_vector_size = substep_volume_vector.size();
+    int substep_volume_vector_size = substep_results.Volume_Vector.size();
     MPI_Allgather(&substep_volume_vector_size, 1, MPI_INT, &recvcounts, 1, MPI_INT, MPI_COMM_WORLD);
     if (myrank==0) {
-      std::cout << " Gather length: rank " << myrank << " sending " << substep_volume_vector.size() << " edge-volume pairs" << std::endl;
+      std::cout << " Gather length: rank " << myrank << " sending " << substep_volume_vector_size << " edge-volume pairs" << std::endl;
     }
 
     // Gather edge-volume pairs from each rank
@@ -142,7 +144,7 @@ void abm::Router_hybrid::quarter_router (int hour, int quarter, int subp_agents,
       cum_recvcounts += recvcounts[i];
     }
     substep_volume_gathered.resize(cum_recvcounts);
-    MPI_Allgatherv(substep_volume_vector.data(), substep_volume_vector.size(), mpi_od, substep_volume_gathered.data(), recvcounts, recvdispls, mpi_od, MPI_COMM_WORLD);
+    MPI_Allgatherv(substep_results.Volume_Vector.data(), substep_results.Volume_Vector.size(), mpi_od, substep_volume_gathered.data(), recvcounts, recvdispls, mpi_od, MPI_COMM_WORLD);
     if (myrank==0) {
       std::cout << " Gather length: rank " << myrank << " gathering " << substep_volume_gathered.size() << " edge-volume pairs" << std::endl;
     }
