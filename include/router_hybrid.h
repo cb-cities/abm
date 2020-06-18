@@ -15,7 +15,7 @@ class Router_hybrid {
   public:
     explicit Router_hybrid(const std::shared_ptr<abm::Graph>& graph) : graph_{graph} {};
     // read od from csv file
-    bool read_timed_od_pairs(const std::string& filename, int nagents = std::numeric_limits<int>::max());
+    bool read_timed_od_pairs(const std::vector<std::string>& filename, int nagents = std::numeric_limits<int>::max());
     // quarterly routing
     void quarter_router (int hour, int quarter, int npagents, int myrank, int nproc);
   

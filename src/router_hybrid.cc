@@ -11,28 +11,30 @@
 #include "router_hybrid.h"
 
 // Read OD pairs file format
-bool abm::Router_hybrid::read_timed_od_pairs(const std::string& filename, int nagents) {
+bool abm::Router_hybrid::read_timed_od_pairs(const std::vector<std::string>& od_filenames, int nagents) {
   bool status = true;
   int od_count = 0;
   std::vector<std::array<abm::graph::vertex_t, 4>> od_inputs;
   od_inputs.reserve(nagents);
   srand(time(NULL));
-  try {
-    io::CSVReader<3> in(filename);
-    in.read_header(io::ignore_extra_column, "node_id_igraph_O", "node_id_igraph_D", "hour");
-    abm::graph::vertex_t v1, v2;
-    int hour;
-    while (in.read_row(v1, v2, hour) && od_count<nagents) {
-      if (v1 != v2) {
-        int quarter = rand() % 4;
-        std::array<abm::graph::vertex_t, 4> timed_od = {hour, quarter, v1, v2};
-        od_inputs.emplace_back(timed_od);
-        od_count++;
+  for(auto filename: od_filenames){
+    try {
+      io::CSVReader<3> in(filename);
+      in.read_header(io::ignore_extra_column, "node_id_igraph_O", "node_id_igraph_D", "hour");
+      abm::graph::vertex_t v1, v2;
+      int hour;
+      while (in.read_row(v1, v2, hour) && od_count<nagents) {
+        if (v1 != v2) {
+          int quarter = rand() % 4;
+          std::array<abm::graph::vertex_t, 4> timed_od = {hour, quarter, v1, v2};
+          od_inputs.emplace_back(timed_od);
+          od_count++;
+        }
       }
+    } catch (std::exception& exception) {
+      std::cout << "Read OD file: " << exception.what() << "\n";
+      status = false;
     }
-  } catch (std::exception& exception) {
-    std::cout << "Read OD file: " << exception.what() << "\n";
-    status = false;
   }
   std::cout << "Rank 0 reads " << od_count << " OD pairs" << std::endl;
   

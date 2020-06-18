@@ -7,6 +7,7 @@ inline void abm::Graph::add_edge(
     abm::graph::vertex_t edgeid =
         std::numeric_limits<abm::graph::vertex_t>::max()) {
   // Create a map of vertices
+  // std::cout << vertices_.size() << std::endl;
   if (vertices_.find(vertex1) == vertices_.end())
     vertices_[vertex1] = vertices_.size();
   if (vertices_.find(vertex2) == vertices_.end())

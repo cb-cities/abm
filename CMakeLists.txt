@@ -59,8 +59,6 @@ include_directories(BEFORE
 # abm executable
 SET(abm_src
   ${abm_SOURCE_DIR}/src/graph.cc
-  ${abm_SOURCE_DIR}/src/router.cc
-  ${abm_SOURCE_DIR}/src/agent.cc
   ${abm_SOURCE_DIR}/src/router_hybrid.cc
 )
 
@@ -71,8 +69,6 @@ if(ABM_BUILD_TESTING)
   SET(test_src
     ${abm_SOURCE_DIR}/tests/test_main.cc
     ${abm_SOURCE_DIR}/tests/graph_test.cc
-    ${abm_SOURCE_DIR}/tests/router_test.cc
-    ${abm_SOURCE_DIR}/tests/agent_test.cc
     )
   add_executable(abmtest ${abm_src} ${test_src})
   add_test(NAME abmtest COMMAND $<TARGET_FILE:abmtest>)
