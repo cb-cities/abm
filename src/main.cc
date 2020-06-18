@@ -7,7 +7,6 @@
 #endif
 
 #include "graph.h"
-// #include "router.h"
 #include "router_hybrid.h"
 
 int main(int argc, char** argv) {
@@ -26,17 +25,21 @@ int main(int argc, char** argv) {
   // read graph
   const bool directed = true;
   auto graph = std::make_shared<abm::Graph>(directed);
-  graph->read_graph_csv("../osm/tokyo_edges.csv");
+  graph->read_graph_csv("/work/07427/bingyu/stampede2/abm/osm/tokyo_edges.csv");
   if (myrank == 0) {
     std::cout << "graph has " << graph->nedges() << " edges, " << graph->nvertices() << " vertices" << std::endl;
   }
   // read OD from rank 0 and scatter it into each rank
   auto ag = std::make_unique<abm::Router_hybrid>(graph);
-  int nagents = 500000; // simulation demand
-  int subp_agents = 5000; // update graph after 5000 agents are assigned
+  int nagents = 5000000; // simulation demand
+  int subp_agents = 20000; // update graph after 5000 agents are assigned
   std::vector<std::array<abm::graph::vertex_t, 3>> all_od_pairs;
   if (myrank == 0) {
-    ag->read_timed_od_pairs("../osm/tokyo_demands_0.csv", nagents);
+    std::vector<std::string> demand_input_files = {
+      "/work/07427/bingyu/stampede2/abm/osm/tokyo_demands_0.csv", 
+      "/work/07427/bingyu/stampede2/abm/osm/tokyo_demands_1.csv", 
+      "/work/07427/bingyu/stampede2/abm/osm/tokyo_demands_2.csv" };
+    ag->read_timed_od_pairs(demand_input_files, nagents);
   }
 
   MPI_Barrier(MPI_COMM_WORLD);
@@ -60,44 +63,3 @@ int main(int argc, char** argv) {
   }
   return 0;
 }
-
-// int main_2(int argc, char** argv) {
-
-//   int mpi_rank = 0;
-//   int mpi_size = 1;
-
-// #ifdef USE_MPI
-//   // Initialise MPI
-//   MPI_Init(&argc, &argv);
-//   MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
-//   MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-// #endif
-
-//   const bool directed = true;
-//   auto graph = std::make_shared<abm::Graph>(directed);
-
-//   std::string od_file;
-//   if (argc == 3) {
-//     // Read MatrixMarket file
-//     const std::string filename = argv[1];
-//     od_file = argv[2];
-//     graph->read_graph_osm(filename);
-//   } else {
-// #ifdef USE_MPI
-//     MPI_Abort(MPI_COMM_WORLD, 1);
-// #endif
-//   }
-
-//   // On MPI rank 0 create a router and fetch all OD pairs
-//   auto router = std::make_unique<abm::Router>(graph);
-//   router->read_od_pairs(od_file);
-
-//   const auto all_paths = router->compute_routes(mpi_rank, mpi_size);
-
-//   if (mpi_rank == 0)
-//     std::cout << "Collected paths: " << all_paths.size() << std::endl;
-
-// #ifdef USE_MPI
-//   MPI_Finalize();
-// #endif
-// }

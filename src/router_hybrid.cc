@@ -11,28 +11,30 @@
 #include "router_hybrid.h"
 
 // Read OD pairs file format
-bool abm::Router_hybrid::read_timed_od_pairs(const std::string& filename, int nagents) {
+bool abm::Router_hybrid::read_timed_od_pairs(const std::vector<std::string>& od_filenames, int nagents) {
   bool status = true;
   int od_count = 0;
   std::vector<std::array<abm::graph::vertex_t, 4>> od_inputs;
   od_inputs.reserve(nagents);
   srand(time(NULL));
-  try {
-    io::CSVReader<3> in(filename);
-    in.read_header(io::ignore_extra_column, "node_id_igraph_O", "node_id_igraph_D", "hour");
-    abm::graph::vertex_t v1, v2;
-    int hour;
-    while (in.read_row(v1, v2, hour) && od_count<nagents) {
-      if (v1 != v2) {
-        int quarter = rand() % 4;
-        std::array<abm::graph::vertex_t, 4> timed_od = {hour, quarter, v1, v2};
-        od_inputs.emplace_back(timed_od);
-        od_count++;
+  for(auto filename: od_filenames){
+    try {
+      io::CSVReader<3> in(filename);
+      in.read_header(io::ignore_extra_column, "node_id_igraph_O", "node_id_igraph_D", "hour");
+      abm::graph::vertex_t v1, v2;
+      int hour;
+      while (in.read_row(v1, v2, hour) && od_count<nagents) {
+        if (v1 != v2) {
+          int quarter = rand() % 4;
+          std::array<abm::graph::vertex_t, 4> timed_od = {hour, quarter, v1, v2};
+          od_inputs.emplace_back(timed_od);
+          od_count++;
+        }
       }
+    } catch (std::exception& exception) {
+      std::cout << "Read OD file: " << exception.what() << "\n";
+      status = false;
     }
-  } catch (std::exception& exception) {
-    std::cout << "Read OD file: " << exception.what() << "\n";
-    status = false;
   }
   std::cout << "Rank 0 reads " << od_count << " OD pairs" << std::endl;
   
@@ -120,14 +122,17 @@ void abm::Router_hybrid::quarter_router (int hour, int quarter, int subp_agents,
     std::cout << "H" << hour << "Q" << quarter << " rank " << myrank << " assigned " << partial_ods.size() << " od pairs out of " << quarter_od_total << " 1st element " << partial_ods[0][0] << std::endl;
 
     // route
-    std::vector<std::array<abm::graph::vertex_t, 2>> substep_volume_vector = substep_router (myrank, partial_ods);
+    auto substep_results = substep_router (myrank, partial_ods);
+    // substep_volume_vector = substep_results.Volume_Vector;
+    // substep_residual_od = substep_results.Residual_Od_Vector;
+    // std::vector<std::array<abm::graph::vertex_t, 2>> substep_volume_vector = substep_router (myrank, partial_ods);
 
     // Determine total numbers of edge-volume pairs received from each rank
     int recvcounts[nproc], recvdispls[nproc]; // related to gatherv of edge volume from each rank
-    int substep_volume_vector_size = substep_volume_vector.size();
+    int substep_volume_vector_size = substep_results.Volume_Vector.size();
     MPI_Allgather(&substep_volume_vector_size, 1, MPI_INT, &recvcounts, 1, MPI_INT, MPI_COMM_WORLD);
     if (myrank==0) {
-      std::cout << " Gather length: rank " << myrank << " sending " << substep_volume_vector.size() << " edge-volume pairs" << std::endl;
+      std::cout << " Gather length: rank " << myrank << " sending " << substep_volume_vector_size << " edge-volume pairs" << std::endl;
     }
 
     // Gather edge-volume pairs from each rank
@@ -139,7 +144,7 @@ void abm::Router_hybrid::quarter_router (int hour, int quarter, int subp_agents,
       cum_recvcounts += recvcounts[i];
     }
     substep_volume_gathered.resize(cum_recvcounts);
-    MPI_Allgatherv(substep_volume_vector.data(), substep_volume_vector.size(), mpi_od, substep_volume_gathered.data(), recvcounts, recvdispls, mpi_od, MPI_COMM_WORLD);
+    MPI_Allgatherv(substep_results.Volume_Vector.data(), substep_results.Volume_Vector.size(), mpi_od, substep_volume_gathered.data(), recvcounts, recvdispls, mpi_od, MPI_COMM_WORLD);
     if (myrank==0) {
       std::cout << " Gather length: rank " << myrank << " gathering " << substep_volume_gathered.size() << " edge-volume pairs" << std::endl;
     }
@@ -175,18 +180,23 @@ void abm::Router_hybrid::quarter_router (int hour, int quarter, int subp_agents,
   }
 }
 
-std::vector<std::array<abm::graph::vertex_t, 2>> abm::Router_hybrid::substep_router (
+abm::Volume_and_Residual abm::Router_hybrid::substep_router (
   int myrank, std::vector<std::array<abm::graph::vertex_t, 2>>& partial_ods) {
   
   // OpenMP calculate shortest path
   std::map<abm::graph::vertex_t, abm::graph::vertex_t> substep_volume_map; // {edge_id: vol}
   int substep_arrival;
+  std::vector<std::array<abm::graph::vertex_t, 2>> substep_residual_od;
+  substep_residual_od.reserve(partial_ods.size());
 
   #pragma omp parallel
   {
     std::vector<abm::graph::vertex_t> substep_onethread_edges;
     substep_onethread_edges.reserve((this->graph_)->nedges()*5);
     int substep_onethread_arrival=0;
+    std::vector<std::array<abm::graph::vertex_t, 2>> substep_onethread_residual_od;
+    substep_onethread_residual_od.reserve(partial_ods.size());
+
     #pragma omp for
     for (unsigned int i=0; i<partial_ods.size(); i++) {
       int t = omp_get_thread_num();
@@ -197,7 +207,7 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Router_hybrid::substep_rou
       abm::graph::vertex_t sp_last_node = graph_->get_edge_ends(sp.back())[1];
       if (sp_last_node != od[1]){
         std::array<abm::graph::vertex_t, 2> one_residual_od = {sp_last_node, od[1]};
-        // residual_od[t].emplace_back(one_residual_od);
+        substep_onethread_residual_od.emplace_back(one_residual_od);
       } else {
         substep_onethread_arrival++;
       }
@@ -212,6 +222,7 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Router_hybrid::substep_rou
         else
           substep_volume_map[x]++;      
       }
+      substep_residual_od.insert(substep_residual_od.end(), substep_onethread_residual_od.begin(), substep_onethread_residual_od.end());
     }
   }
   if (myrank==0) {
@@ -225,7 +236,7 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Router_hybrid::substep_rou
     substep_volume_vector.push_back({x.first, x.second});
   }
 
-  return substep_volume_vector;
+  return {substep_volume_vector, substep_residual_od};
 }
 
 void abm::Router_hybrid::output_edge_vol_map (const std::string& output_filename) {

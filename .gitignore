@@ -1,3 +1,7 @@
+### HPC files
+tokyo_c.e*
+tokyo_c.o*
+
 ### input output data
 *.csv
 
