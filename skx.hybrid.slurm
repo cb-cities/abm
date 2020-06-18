@@ -36,8 +36,8 @@
 #SBATCH -o tokyo_c.o%j       # Name of stdout output file
 #SBATCH -e tokyo_c.e%j       # Name of stderr error file
 #SBATCH -p skx-normal      # Queue (partition) name
-#SBATCH -N 3               # Total # of nodes 
-#SBATCH -n 3               # Total # of mpi tasks
+#SBATCH -N 2               # Total # of nodes 
+#SBATCH -n 4               # Total # of mpi tasks
 #SBATCH -t 00:30:00        # Run time (hh:mm:ss)
 #SBATCH --mail-user=bz247@berkeley.edu
 #SBATCH --mail-type=all    # Send email at begin and end of job
@@ -51,7 +51,7 @@ module load gcc
 
 # Set thread count (default value is 1)...
 
-export OMP_NUM_THREADS=44
+export OMP_NUM_THREADS=22
 
 # Launch MPI code... 
 

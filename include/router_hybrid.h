@@ -11,6 +11,12 @@
 
 namespace abm {
 
+struct Volume_and_Residual
+{
+  std::vector<std::array<abm::graph::vertex_t, 2>> Volume_Vector;
+  std::vector<std::array<abm::graph::vertex_t, 2>> Residual_Od_Vector;
+};
+
 class Router_hybrid {
   public:
     explicit Router_hybrid(const std::shared_ptr<abm::Graph>& graph) : graph_{graph} {};
@@ -24,7 +30,7 @@ class Router_hybrid {
     std::map<int, std::map<int, std::vector<std::array<abm::graph::vertex_t, 2>>>> make_timed_od_map (
                     bool print_od_map, int nagents, std::vector<std::array<abm::graph::vertex_t, 4>>& od_inputs);
     // called by quarter router for substep (OpenMP) path calculation
-    std::vector<std::array<abm::graph::vertex_t, 2>> substep_router (
+    Volume_and_Residual substep_router (
                     int myrank, std::vector<std::array<abm::graph::vertex_t, 2>>& partial_ods);
     // save quarterly edge volume to file
     void output_edge_vol_map (const std::string& output_filename);

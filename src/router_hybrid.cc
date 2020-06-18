@@ -122,7 +122,8 @@ void abm::Router_hybrid::quarter_router (int hour, int quarter, int subp_agents,
     std::cout << "H" << hour << "Q" << quarter << " rank " << myrank << " assigned " << partial_ods.size() << " od pairs out of " << quarter_od_total << " 1st element " << partial_ods[0][0] << std::endl;
 
     // route
-    std::vector<std::array<abm::graph::vertex_t, 2>> substep_volume_vector = substep_router (myrank, partial_ods);
+    auto [substep_volume_vector, substep_residual_od] = substep_router (myrank, partial_ods);
+    // std::vector<std::array<abm::graph::vertex_t, 2>> substep_volume_vector = substep_router (myrank, partial_ods);
 
     // Determine total numbers of edge-volume pairs received from each rank
     int recvcounts[nproc], recvdispls[nproc]; // related to gatherv of edge volume from each rank
@@ -177,18 +178,23 @@ void abm::Router_hybrid::quarter_router (int hour, int quarter, int subp_agents,
   }
 }
 
-std::vector<std::array<abm::graph::vertex_t, 2>> abm::Router_hybrid::substep_router (
+abm::Volume_and_Residual abm::Router_hybrid::substep_router (
   int myrank, std::vector<std::array<abm::graph::vertex_t, 2>>& partial_ods) {
   
   // OpenMP calculate shortest path
   std::map<abm::graph::vertex_t, abm::graph::vertex_t> substep_volume_map; // {edge_id: vol}
   int substep_arrival;
+  std::vector<std::array<abm::graph::vertex_t, 2>> substep_residual_od;
+  substep_residual_od.reserve(partial_ods.size());
 
   #pragma omp parallel
   {
     std::vector<abm::graph::vertex_t> substep_onethread_edges;
     substep_onethread_edges.reserve((this->graph_)->nedges()*5);
     int substep_onethread_arrival=0;
+    std::vector<std::array<abm::graph::vertex_t, 2>> substep_onethread_residual_od;
+    substep_onethread_residual_od.reserve(partial_ods.size());
+
     #pragma omp for
     for (unsigned int i=0; i<partial_ods.size(); i++) {
       int t = omp_get_thread_num();
@@ -199,7 +205,7 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Router_hybrid::substep_rou
       abm::graph::vertex_t sp_last_node = graph_->get_edge_ends(sp.back())[1];
       if (sp_last_node != od[1]){
         std::array<abm::graph::vertex_t, 2> one_residual_od = {sp_last_node, od[1]};
-        // residual_od[t].emplace_back(one_residual_od);
+        substep_onethread_residual_od.emplace_back(one_residual_od);
       } else {
         substep_onethread_arrival++;
       }
@@ -214,6 +220,7 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Router_hybrid::substep_rou
         else
           substep_volume_map[x]++;      
       }
+      substep_residual_od.insert(substep_residual_od.end(), substep_onethread_residual_od.begin(), substep_onethread_residual_od.end());
     }
   }
   if (myrank==0) {
@@ -227,7 +234,7 @@ std::vector<std::array<abm::graph::vertex_t, 2>> abm::Router_hybrid::substep_rou
     substep_volume_vector.push_back({x.first, x.second});
   }
 
-  return substep_volume_vector;
+  return {substep_volume_vector, substep_residual_od};
 }
 
 void abm::Router_hybrid::output_edge_vol_map (const std::string& output_filename) {
