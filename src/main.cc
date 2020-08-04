@@ -25,20 +25,21 @@ int main(int argc, char** argv) {
   // read graph
   const bool directed = true;
   auto graph = std::make_shared<abm::Graph>(directed);
-  graph->read_graph_csv("/work/07427/bingyu/stampede2/abm/osm/tokyo_edges.csv");
+  graph->read_graph_csv("/home/bingyu/abm/osm/tokyo_edges.csv");
   if (myrank == 0) {
     std::cout << "graph has " << graph->nedges() << " edges, " << graph->nvertices() << " vertices" << std::endl;
   }
   // read OD from rank 0 and scatter it into each rank
   auto ag = std::make_unique<abm::Router_hybrid>(graph);
-  int nagents = 5000000; // simulation demand
-  int subp_agents = 20000; // update graph after 5000 agents are assigned
+  int nagents = 500000; // simulation demand
+  int subp_agents = 5000; // update graph after 5000 agents are assigned
   std::vector<std::array<abm::graph::vertex_t, 3>> all_od_pairs;
   if (myrank == 0) {
     std::vector<std::string> demand_input_files = {
-      "/work/07427/bingyu/stampede2/abm/osm/tokyo_demands_0.csv", 
-      "/work/07427/bingyu/stampede2/abm/osm/tokyo_demands_1.csv", 
-      "/work/07427/bingyu/stampede2/abm/osm/tokyo_demands_2.csv" };
+      "/home/bingyu/abm/osm/tokyo_demands_0.csv", 
+      // "/home/bingyu/abm/osm/tokyo_demands_1.csv", 
+      // "/home/bingyu/abm/osm/tokyo_demands_2.csv" 
+    };
     ag->read_timed_od_pairs(demand_input_files, nagents);
   }
 
