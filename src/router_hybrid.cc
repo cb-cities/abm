@@ -195,9 +195,9 @@ void abm::Router_hybrid::quarter_router (int hour, int quarter, int subp_agents,
   }
 
   // Output quarterly edge volume results
-  // if (myrank==0) {
-  //   output_edge_vol_map("/scratch/07427/bingyu/abm/simulation_outputs/edge_vol/edge_vol_h"+std::to_string(hour)+"_q"+std::to_string(quarter)+".csv");
-  // }
+  if (myrank==0) {
+    output_edge_vol_map("/scratch/07427/bingyu/abm/simulation_outputs/edge_vol/edge_vol_h"+std::to_string(hour)+"_q"+std::to_string(quarter)+".csv");
+  }
 
   // clear results for next quarter
   (this->edge_vol_).clear();
