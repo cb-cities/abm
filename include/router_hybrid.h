@@ -14,7 +14,7 @@ namespace abm {
 struct Volume_and_Residual
 {
   std::vector<std::array<abm::graph::vertex_t, 2>> Volume_Vector;
-  std::vector<std::array<abm::graph::vertex_t, 2>> Residual_Od_Vector;
+  std::vector<std::array<abm::graph::vertex_t, 2>> Residual_OD_Vector;
 };
 
 class Router_hybrid {

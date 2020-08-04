@@ -134,19 +134,35 @@ void abm::Router_hybrid::quarter_router (int hour, int quarter, int subp_agents,
     if (myrank==0) {
       std::cout << " Gather length: rank " << myrank << " sending " << substep_volume_vector_size << " edge-volume pairs" << std::endl;
     }
+    // Determine total numbers of residual OD pairs received from each rank
+    int recvcounts_od[nproc], recvdispls_od[nproc]; // related to gatherv of edge volume from each rank
+    int substep_residual_od_vector_size = substep_results.Residual_OD_Vector.size();
+    MPI_Allgather(&substep_residual_od_vector_size, 1, MPI_INT, &recvcounts_od, 1, MPI_INT, MPI_COMM_WORLD);
+    if (myrank==0) {
+      std::cout << " Gather length: rank " << myrank << " sending " << substep_residual_od_vector_size << " residual OD pairs" << std::endl;
+    } 
 
     // Gather edge-volume pairs from each rank
     std::vector<std::array<abm::graph::vertex_t, 2>> substep_volume_gathered;
+    std::vector<std::array<abm::graph::vertex_t, 2>> substep_residual_od_gathered;
     int cum_recvcounts = recvcounts[0]; 
+    int cum_recvcounts_od = recvcounts_od[0]; 
     recvdispls[0] = 0;              // offsets into the global array
+    recvdispls_od[0] = 0;              // offsets into the global array
     for (int i=1; i<nproc; i++) {
       recvdispls[i] = recvdispls[i-1] + recvcounts[i-1];
       cum_recvcounts += recvcounts[i];
+      recvdispls_od[i] = recvdispls_od[i-1] + recvcounts_od[i-1];
+      cum_recvcounts_od += recvcounts_od[i];
     }
     substep_volume_gathered.resize(cum_recvcounts);
-    MPI_Allgatherv(substep_results.Volume_Vector.data(), substep_results.Volume_Vector.size(), mpi_od, substep_volume_gathered.data(), recvcounts, recvdispls, mpi_od, MPI_COMM_WORLD);
     if (myrank==0) {
-      std::cout << " Gather length: rank " << myrank << " gathering " << substep_volume_gathered.size() << " edge-volume pairs" << std::endl;
+      substep_residual_od_gathered.resize(cum_recvcounts_od);
+    }
+    MPI_Allgatherv(substep_results.Volume_Vector.data(), substep_results.Volume_Vector.size(), mpi_od, substep_volume_gathered.data(), recvcounts, recvdispls, mpi_od, MPI_COMM_WORLD);
+    MPI_Gatherv(substep_results.Residual_OD_Vector.data(), substep_results.Residual_OD_Vector.size(), mpi_od, substep_residual_od_gathered.data(), recvcounts_od, recvdispls_od, mpi_od, 0, MPI_COMM_WORLD);
+    if (myrank==0) {
+      std::cout << " Gather length: rank " << myrank << " gathering " << substep_volume_gathered.size() << " edge-volume pairs and " << substep_residual_od_gathered.size() << " residual OD pairs" << std::endl;
     }
     MPI_Type_free( &mpi_od );
 
@@ -166,12 +182,22 @@ void abm::Router_hybrid::quarter_router (int hour, int quarter, int subp_agents,
       abm::graph::weight_t new_weight = fft*(1+pow((vol/2000),2));
       (this->graph_)->update_edge_by_id(edge_update.first, new_weight);
     }
+
+    // add residual OD
+    if (myrank==0) {
+      if (quarter==3) {
+        (this->input_ods_)[hour+1][0].insert((this->input_ods_)[hour+1][0].end(), substep_residual_od_gathered.begin(), substep_residual_od_gathered.end());
+      } else {
+        // std::cout << (this->input_ods_)[hour][quarter+1].size() << std::endl;
+        (this->input_ods_)[hour][quarter+1].insert((this->input_ods_)[hour][quarter+1].end(), substep_residual_od_gathered.begin(), substep_residual_od_gathered.end());
+      }
+    }
   }
 
   // Output quarterly edge volume results
-  // if (myrank==0) {
-  //   output_edge_vol_map("/scratch/07427/bingyu/abm/simulation_outputs/edge_vol/edge_vol_h"+std::to_string(hour)+"_q"+std::to_string(quarter)+".csv");
-  // }
+  if (myrank==0) {
+    output_edge_vol_map("/scratch/07427/bingyu/abm/simulation_outputs/edge_vol/edge_vol_h"+std::to_string(hour)+"_q"+std::to_string(quarter)+".csv");
+  }
 
   // clear results for next quarter
   (this->edge_vol_).clear();
@@ -225,9 +251,9 @@ abm::Volume_and_Residual abm::Router_hybrid::substep_router (
       substep_residual_od.insert(substep_residual_od.end(), substep_onethread_residual_od.begin(), substep_onethread_residual_od.end());
     }
   }
-  if (myrank==0) {
-    std::cout << " After OMP, rank:" << myrank << std::endl;
-  }
+  // if (myrank==0) {
+  //   std::cout << " After OMP, rank:" << myrank << std::endl;
+  // }
 
   // Convert the std::map<edge, volume> to a vector (easier to send using MPI)
   std::vector<std::array<abm::graph::vertex_t, 2>> substep_volume_vector; // [(edge_id: vol), ...] for gathering
