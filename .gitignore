@@ -1,3 +1,9 @@
+### Python file
+**/*.pyc
+
+### data
+**/*.mtx
+
 ### HPC files
 tokyo_c.e*
 tokyo_c.o*
