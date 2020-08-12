@@ -145,7 +145,7 @@ bool abm::Graph::read_graph_osm(const std::string& filename) {
   bool status = true;
   try {
     io::CSVReader<4> in(filename);
-    in.read_header(io::ignore_extra_column, "uniqueid", "u", "v", "length");
+    in.read_header(io::ignore_extra_column, "uniqueid", "u", "v", "fft");
     abm::graph::vertex_t edgeid, v1, v2;
     abm::graph::weight_t weight;
     unsigned nvertices = 0;
@@ -173,7 +173,7 @@ bool abm::Graph::read_graph_csv(const std::string& filename) {
   bool status = true;
   try {
     io::CSVReader<4, io::trim_chars<' '>, io::double_quote_escape<',','\"'>> in(filename);
-    in.read_header(io::ignore_extra_column, "edge_id_igraph", "start_igraph", "end_igraph", "fft");
+    in.read_header(io::ignore_extra_column, "edge_id_igraph", "start_igraph", "end_igraph", "length");
     abm::graph::vertex_t edgeid, v1, v2;
     abm::graph::weight_t weight;
     unsigned nvertices = 0;
@@ -385,7 +385,8 @@ abm::graph::weight_t abm::Graph::path_cost(
 }
 
 // Truncated path based on cost
-std::vector<abm::graph::vertex_t> abm::Graph::dijkstra_edges_with_limit(
+abm::Route_and_Weight abm::Graph::dijkstra_edges_with_limit(
+// std::vector<abm::graph::vertex_t> abm::Graph::dijkstra_edges_with_limit(
     abm::graph::vertex_t source, abm::graph::vertex_t destination, abm::graph::weight_t weight_limit) {
 
   const auto path = this->dijkstra(source, destination);
@@ -410,7 +411,8 @@ std::vector<abm::graph::vertex_t> abm::Graph::dijkstra_edges_with_limit(
       }
     }
   }
-  return route_edges;
+  // std::cout << weight_cumulator << std::endl;
+  return {route_edges, weight_cumulator};
 }
 
 // Get edge nodes

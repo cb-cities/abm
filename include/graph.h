@@ -22,6 +22,12 @@
 
 namespace abm {
 
+struct Route_and_Weight
+{
+  std::vector<graph::vertex_t> Route_Vector;
+  double Weight;
+};
+
 //! \brief Graph class to store vertices and edge and compute shortest path
 //! \details Graph class has Priority Queue Dijkstra algorithm for SSSP
 class Graph {
@@ -102,10 +108,14 @@ class Graph {
   //! \retval route_edges Edges of the route from source to destination
   std::vector<graph::vertex_t> dijkstra_edges(graph::vertex_t source,
                                               graph::vertex_t destination);
-  std::vector<graph::vertex_t> dijkstra_edges_with_limit(
-                                              graph::vertex_t source, 
-                                              graph::vertex_t destination, 
-                                              graph::weight_t weight_limit);
+//   std::vector<graph::vertex_t> dijkstra_edges_with_limit(
+//                                               graph::vertex_t source, 
+//                                               graph::vertex_t destination, 
+//                                               graph::weight_t weight_limit);
+  abm::Route_and_Weight dijkstra_edges_with_limit(
+                    graph::vertex_t source, 
+                    graph::vertex_t destination, 
+                    graph::weight_t weight_limit);
 
   //! Path cost from edge ids
   //! \param[in] path Vertices of the path from source to destination

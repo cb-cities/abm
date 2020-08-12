@@ -17,6 +17,12 @@ struct Volume_and_Residual
   std::vector<std::array<abm::graph::vertex_t, 2>> Residual_OD_Vector;
 };
 
+// struct Route_and_Weight
+// {
+//   std::vector<graph::vertex_t> Route_Vector;
+//   double Weight;
+// };
+
 class Router_hybrid {
   public:
     explicit Router_hybrid(const std::shared_ptr<abm::Graph>& graph) : graph_{graph} {};

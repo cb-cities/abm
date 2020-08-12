@@ -31,14 +31,14 @@ int main(int argc, char** argv) {
   }
   // read OD from rank 0 and scatter it into each rank
   auto ag = std::make_unique<abm::Router_hybrid>(graph);
-  int nagents = 500000; // simulation demand
-  int subp_agents = 5000; // update graph after 5000 agents are assigned
+  int nagents = 22000000; // simulation demand
+  int subp_agents = 200000; // update graph after 5000 agents are assigned
   std::vector<std::array<abm::graph::vertex_t, 3>> all_od_pairs;
   if (myrank == 0) {
     std::vector<std::string> demand_input_files = {
-      "/home/bingyu/abm/osm/tokyo_demands_0.csv", 
-      // "/home/bingyu/abm/osm/tokyo_demands_1.csv", 
-      // "/home/bingyu/abm/osm/tokyo_demands_2.csv" 
+      "/home/bingyu/abm/osm/tokyo_demands_2.csv", 
+      "/home/bingyu/abm/osm/tokyo_demands_1.csv", 
+      "/home/bingyu/abm/osm/tokyo_demands_0.csv" 
     };
     ag->read_timed_od_pairs(demand_input_files, nagents);
   }
@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
 
   // ag->make_timed_od_map(0, npagents, nproc, myrank);
 
-  for (int hour=3; hour!=20; ++hour) {
+  for (int hour=3; hour!=15; ++hour) {
     for (int quarter=0; quarter!=4; ++quarter){
       ag->quarter_router(hour, quarter, subp_agents, myrank, nproc);
     }

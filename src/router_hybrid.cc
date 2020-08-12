@@ -97,7 +97,7 @@ void abm::Router_hybrid::quarter_router (int hour, int quarter, int subp_agents,
     
     // each substep needs to process among all ranks
     int substep_od_size = std::min(subp_agents, quarter_od_total-quarter_od_routed);
-    if ((quarter_od_total-quarter_od_routed) < (quarter_od_routed + nproc*10)) {
+    if ((quarter_od_total-quarter_od_routed) < (subp_agents + nproc*10)) {
       substep_od_size = quarter_od_total-quarter_od_routed;
     }
     quarter_od_routed += substep_od_size;
@@ -109,8 +109,9 @@ void abm::Router_hybrid::quarter_router (int hour, int quarter, int subp_agents,
       senddispls[i] = substep_od_size_per_rank*i;
     }
     // if cannot be distributed evenly among ranks
-    if (nproc>0)
+    if (nproc>1)
       sendcounts[nproc] = substep_od_size - sendcounts[nproc-1];
+    // std::cout << nproc << " " << substep_od_size_per_rank << " " << sendcounts[0] << " " << sendcounts[1] << " " << sendcounts[2] << std::endl;
     
     // each rank receives 
     std::vector<std::array<abm::graph::vertex_t, 2>> partial_ods;
@@ -167,12 +168,14 @@ void abm::Router_hybrid::quarter_router (int hour, int quarter, int subp_agents,
     MPI_Type_free( &mpi_od );
 
     // Combine edge-volume pairs based on edge-id
+    int total_volume = 0;
     for (auto & e_v : substep_volume_gathered) {
       abm::graph::vertex_t edge_id=e_v[0];
       if ((this->edge_vol_).find(edge_id) == (this->edge_vol_).end())
-        (this->edge_vol_)[edge_id] = 1;
+        (this->edge_vol_)[edge_id] = e_v[1];
       else
-        (this->edge_vol_)[edge_id]++;
+        // (this->edge_vol_)[edge_id]++;
+        (this->edge_vol_)[edge_id] += e_v[1];
     }
     substep_volume_gathered.clear();
     // Update graph
@@ -196,7 +199,7 @@ void abm::Router_hybrid::quarter_router (int hour, int quarter, int subp_agents,
 
   // Output quarterly edge volume results
   if (myrank==0) {
-    output_edge_vol_map("/scratch/07427/bingyu/abm/simulation_outputs/edge_vol/edge_vol_h"+std::to_string(hour)+"_q"+std::to_string(quarter)+".csv");
+    output_edge_vol_map("/home/bingyu/abm/simulation_outputs/edge_vol/edge_vol_h"+std::to_string(hour)+"_q"+std::to_string(quarter)+".csv");
   }
 
   // clear results for next quarter
@@ -215,6 +218,9 @@ abm::Volume_and_Residual abm::Router_hybrid::substep_router (
   std::vector<std::array<abm::graph::vertex_t, 2>> substep_residual_od;
   substep_residual_od.reserve(partial_ods.size());
 
+  // int substep_onethread_edgecnts=0;
+  std::vector<double> substep_distance;
+  substep_distance.reserve(partial_ods.size());
   #pragma omp parallel
   {
     std::vector<abm::graph::vertex_t> substep_onethread_edges;
@@ -222,12 +228,23 @@ abm::Volume_and_Residual abm::Router_hybrid::substep_router (
     int substep_onethread_arrival=0;
     std::vector<std::array<abm::graph::vertex_t, 2>> substep_onethread_residual_od;
     substep_onethread_residual_od.reserve(partial_ods.size());
+    // distance
+    std::vector<double> substep_onethread_distance;
+    substep_onethread_distance.reserve(partial_ods.size());
 
     #pragma omp for
     for (unsigned int i=0; i<partial_ods.size(); i++) {
       int t = omp_get_thread_num();
       std::array<abm::graph::vertex_t, 2> od = partial_ods[i];
-      auto sp = graph_->dijkstra_edges_with_limit(od[0], od[1], 15*60);
+      auto sp_results = graph_->dijkstra_edges_with_limit(od[0], od[1], 15*6000);
+      std::vector<graph::vertex_t> sp = sp_results.Route_Vector;
+      double total_weight = sp_results.Weight;
+
+      // std::cout << od[0] << " " << od[1] << " ";
+      // for (auto i = sp.begin(); i != sp.end(); ++i)
+      //   std::cout << *i << ' ';
+      // std::cout << std::endl;
+
       substep_onethread_edges.insert(std::end(substep_onethread_edges), std::begin(sp), std::end(sp));
       // residual demand
       abm::graph::vertex_t sp_last_node = graph_->get_edge_ends(sp.back())[1];
@@ -237,23 +254,37 @@ abm::Volume_and_Residual abm::Router_hybrid::substep_router (
       } else {
         substep_onethread_arrival++;
       }
+      // distance
+      substep_onethread_distance.emplace_back(total_weight);
     }
     // join results from each thread
     #pragma omp critical
     {
       substep_arrival += substep_onethread_arrival;
       for (auto & x: substep_onethread_edges) {
+        // substep_onethread_edgecnts += 1;
         if (substep_volume_map.find(x) == substep_volume_map.end())
           substep_volume_map[x] = 1;
         else
           substep_volume_map[x]++;      
       }
       substep_residual_od.insert(substep_residual_od.end(), substep_onethread_residual_od.begin(), substep_onethread_residual_od.end());
+      // distance
+      substep_distance.insert(substep_distance.end(), substep_onethread_distance.begin(), substep_onethread_distance.end());
     }
   }
   // if (myrank==0) {
   //   std::cout << " After OMP, rank:" << myrank << std::endl;
   // }
+  // std::cout << "OpenMP find " << substep_onethread_edgecnts << " edges." << std::endl;
+  int avg_dist;
+  int sumTotal_dist = 0;
+  for(int k=0; k < substep_distance.size(); ++k){
+      // not sure what to put here basically.
+      sumTotal_dist += substep_distance[k];            
+  }
+  avg_dist = sumTotal_dist / substep_distance.size();
+  std::cout << " OpenMP distance average " << avg_dist << " count " << substep_distance.size() << std::endl;
 
   // Convert the std::map<edge, volume> to a vector (easier to send using MPI)
   std::vector<std::array<abm::graph::vertex_t, 2>> substep_volume_vector; // [(edge_id: vol), ...] for gathering
@@ -261,6 +292,7 @@ abm::Volume_and_Residual abm::Router_hybrid::substep_router (
   for( auto & x : substep_volume_map ) {
     substep_volume_vector.push_back({x.first, x.second});
   }
+  // std::cout << substep_volume_map.size() << " " << substep_volume_vector.size() << std::endl;
 
   return {substep_volume_vector, substep_residual_od};
 }
