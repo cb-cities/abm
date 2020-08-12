@@ -11,6 +11,10 @@
 
 int main(int argc, char** argv) {
 
+  // inputs
+  std::string highway_discount = argv[1];
+  std::cout << "weight adjust factor for highway " << highway_discount << std::endl;
+
   // MPI
   int nproc, myrank;
   MPI_Init(&argc, &argv);
@@ -25,7 +29,7 @@ int main(int argc, char** argv) {
   // read graph
   const bool directed = true;
   auto graph = std::make_shared<abm::Graph>(directed);
-  graph->read_graph_csv("/home/bingyu/abm/osm/tokyo_edges.csv");
+  graph->read_graph_csv("/home/bingyu/abm/osm/tokyo_edges_discount.csv");
   if (myrank == 0) {
     std::cout << "graph has " << graph->nedges() << " edges, " << graph->nvertices() << " vertices" << std::endl;
   }
@@ -48,9 +52,9 @@ int main(int argc, char** argv) {
 
   // ag->make_timed_od_map(0, npagents, nproc, myrank);
 
-  for (int hour=3; hour!=15; ++hour) {
-    for (int quarter=0; quarter!=4; ++quarter){
-      ag->quarter_router(hour, quarter, subp_agents, myrank, nproc);
+  for (int hour=3; hour!=4; ++hour) {
+    for (int quarter=0; quarter!=1; ++quarter){
+      ag->quarter_router(hour, quarter, subp_agents, myrank, nproc, highway_discount);
     }
   } 
   std::cout << " finish all time steps " << myrank << std::endl;

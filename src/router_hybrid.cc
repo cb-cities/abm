@@ -81,7 +81,7 @@ std::map<int, std::map<int, std::vector<std::array<abm::graph::vertex_t, 2>>>> a
   return timed_od_map;
 }
 
-void abm::Router_hybrid::quarter_router (int hour, int quarter, int subp_agents, int myrank, int nproc) {
+void abm::Router_hybrid::quarter_router (int hour, int quarter, int subp_agents, int myrank, int nproc, std::string output_suffix) {
 
   std::vector<std::array<abm::graph::vertex_t, 2>> quarter_ods; // quarter_ods are from rank 0 and are to be scattered to each rank.
   int quarter_od_routed = 0, quarter_od_total;
@@ -199,7 +199,7 @@ void abm::Router_hybrid::quarter_router (int hour, int quarter, int subp_agents,
 
   // Output quarterly edge volume results
   if (myrank==0) {
-    output_edge_vol_map("/home/bingyu/abm/simulation_outputs/edge_vol/edge_vol_h"+std::to_string(hour)+"_q"+std::to_string(quarter)+".csv");
+    output_edge_vol_map("/home/bingyu/abm/simulation_outputs/edge_vol_discount/edge_vol_h"+std::to_string(hour)+"_q"+std::to_string(quarter)+"_adj"+output_suffix+".csv");
   }
 
   // clear results for next quarter

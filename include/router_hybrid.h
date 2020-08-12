@@ -29,7 +29,7 @@ class Router_hybrid {
     // read od from csv file
     bool read_timed_od_pairs(const std::vector<std::string>& filename, int nagents = std::numeric_limits<int>::max());
     // quarterly routing
-    void quarter_router (int hour, int quarter, int npagents, int myrank, int nproc);
+    void quarter_router (int hour, int quarter, int npagents, int myrank, int nproc, std::string output_suffix);
   
   private:
     // convert input OD (csv) into map with hour and quarter as the keys

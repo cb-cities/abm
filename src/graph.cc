@@ -173,7 +173,7 @@ bool abm::Graph::read_graph_csv(const std::string& filename) {
   bool status = true;
   try {
     io::CSVReader<4, io::trim_chars<' '>, io::double_quote_escape<',','\"'>> in(filename);
-    in.read_header(io::ignore_extra_column, "edge_id_igraph", "start_igraph", "end_igraph", "length");
+    in.read_header(io::ignore_extra_column, "edge_id_igraph", "start_igraph", "end_igraph", "fft_adj");
     abm::graph::vertex_t edgeid, v1, v2;
     abm::graph::weight_t weight;
     unsigned nvertices = 0;
