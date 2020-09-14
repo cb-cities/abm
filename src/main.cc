@@ -14,6 +14,9 @@ int main(int argc, char** argv) {
   // inputs
   std::string highway_discount = argv[1];
   std::cout << "weight adjust factor for highway " << highway_discount << std::endl;
+  std::string start_hour = argv[2];
+  std::cout << "quarter simulation starts at " << start_hour << std::endl;
+  int start_hour_int = std::stoi(start_hour);
 
   // MPI
   int nproc, myrank;
@@ -36,7 +39,7 @@ int main(int argc, char** argv) {
   // read OD from rank 0 and scatter it into each rank
   auto ag = std::make_unique<abm::Router_hybrid>(graph);
   int nagents = 22000000; // simulation demand
-  int subp_agents = 200000; // update graph after 5000 agents are assigned
+  int subp_agents = 2000; // update graph after 5000 agents are assigned
   std::vector<std::array<abm::graph::vertex_t, 3>> all_od_pairs;
   if (myrank == 0) {
     std::vector<std::string> demand_input_files = {
@@ -52,7 +55,7 @@ int main(int argc, char** argv) {
 
   // ag->make_timed_od_map(0, npagents, nproc, myrank);
 
-  for (int hour=3; hour!=4; ++hour) {
+  for (int hour=start_hour_int; hour!=start_hour_int+1; ++hour) {
     for (int quarter=0; quarter!=1; ++quarter){
       ag->quarter_router(hour, quarter, subp_agents, myrank, nproc, highway_discount);
     }
